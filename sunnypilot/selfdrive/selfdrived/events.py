@@ -208,6 +208,14 @@ EVENTS_SP: dict[int, dict[str, Alert | AlertCallbackType]] = {
       Priority.LOW, VisualAlert.none, AudibleAlert.none, 1.),
   },
 
+  EventNameSP.laneChangeSuggested: {
+    ET.WARNING: Alert(
+      "Lane change available",
+      "Use turn signal to confirm",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlertSP.promptSingleLow, 2.),
+  },
+
   EventNameSP.speedLimitActive: {
     ET.WARNING: Alert(
       "Auto adjusting to speed limit",
