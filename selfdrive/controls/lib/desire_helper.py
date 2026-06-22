@@ -40,7 +40,7 @@ TURN_DESIRES = {
 
 
 class DesireHelper:
-  def __init__(self, bsm_available: bool = False):
+  def __init__(self, bsm_available: bool = True):
     self.lane_change_state = LaneChangeState.off
     self.lane_change_direction = LaneChangeDirection.none
     self.lane_change_timer = 0.0
