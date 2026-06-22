@@ -258,7 +258,6 @@ struct LongitudinalPlanSP @0xf35cc4560bbf6ec2 {
       speedLimitFinal @5 :Float32;
       speedLimitFinalLast @6 :Float32;
       speedLimitValid @7 :Bool;
-      speedLimitLastValid @8 :Bool;
     }
 
     struct Assist {
@@ -342,6 +341,7 @@ struct OnroadEventSP @0xda96579883444c35 {
     speedLimitChanged @21;
     speedLimitPending @22;
     e2eChime @23;
+    laneChangeSuggested @24;
   }
 }
 
