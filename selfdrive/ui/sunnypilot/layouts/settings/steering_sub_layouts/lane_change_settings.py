@@ -30,9 +30,9 @@ class LaneChangeSettingsLayout(Widget):
     self._lane_change_timer = option_item_sp(
       title=lambda: tr("Auto Lane Change by Blinker"),
       param="AutoLaneChangeTimer",
-      description=lambda: tr("Set a timer to delay the auto lane change operation when the blinker is used. " +
-                             "No nudge on the steering wheel is required to auto lane change if a timer is set. Default is Nudge.<br>" +
-                             "Please use caution when using this feature. Only use the blinker when traffic and road conditions permit."),
+      description=lambda: tr("Set a timer to delay the lane change operation when the blinker is used. " +
+                             "No nudge on the steering wheel is required if a timer is set. Default is Nudge.<br>" +
+                             "Use only when traffic and road conditions permit."),
       min_value=-1,
       max_value=5,
       value_change_step=1,
@@ -45,15 +45,24 @@ class LaneChangeSettingsLayout(Widget):
                       f"2 {tr('s')}" if x == 4 else
                       f"3 {tr('s')}")
     )
+    self._highway_lane_change_bsm_gate = toggle_item_sp(
+      param="ModelHighwayAutoLaneChange",
+      title=lambda: tr("Highway Lane Change with BSM Gate"),
+      description=lambda: tr("Permit no-nudge lane changes only at highway speed when one blinker is active, " +
+                             "BSM is available, and the target blind spot has been clear for at least 1 second. " +
+                             "Minimum speed: 80 km/h."),
+    )
     self._bsm_delay = toggle_item_sp(
       param="AutoLaneChangeBsmDelay",
       title=lambda: tr("Auto Lane Change: Delay with Blind Spot"),
-      description=lambda: tr("Toggle to enable a delay timer for seamless lane changes when blind spot monitoring " +
-                             "(BSM) detects a obstructing vehicle, ensuring safe maneuvering."),
+      description=lambda: tr("Toggle to enable a delay timer for lane changes when blind spot monitoring " +
+                             "(BSM) detects a vehicle."),
     )
 
     items = [
       self._lane_change_timer,
+      LineSeparatorSP(40),
+      self._highway_lane_change_bsm_gate,
       LineSeparatorSP(40),
       self._bsm_delay,
     ]
@@ -78,4 +87,7 @@ class LaneChangeSettingsLayout(Widget):
     enable_bsm = ui_state.CP is not None and ui_state.CP.enableBsm
     if not enable_bsm and ui_state.params.get_bool("AutoLaneChangeBsmDelay"):
       ui_state.params.remove("AutoLaneChangeBsmDelay")
+    if not enable_bsm and ui_state.params.get_bool("ModelHighwayAutoLaneChange"):
+      ui_state.params.remove("ModelHighwayAutoLaneChange")
+    self._highway_lane_change_bsm_gate.action_item.set_enabled(enable_bsm)
     self._bsm_delay.action_item.set_enabled(enable_bsm and ui_state.params.get("AutoLaneChangeTimer", return_default=True) > AutoLaneChangeMode.NUDGE)
