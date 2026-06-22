@@ -32,6 +32,7 @@ AUTO_LANE_CHANGE_TIMER = {
 }
 
 ONE_SECOND_DELAY = -1
+MODEL_HIGHWAY_AUTO_LANE_CHANGE_PARAM = "ModelHighwayAutoLaneChange"
 MODEL_HIGHWAY_AUTO_LANE_CHANGE_SPEED_MIN = 80 * CV.KPH_TO_MS
 MODEL_HIGHWAY_AUTO_LANE_CHANGE_CLEAR_DELAY = 1.0
 
@@ -66,10 +67,14 @@ class AutoLaneChangeController:
       self.prev_brake_pressed = False
       self.prev_lane_change = False
 
+  def _model_highway_param_available(self) -> bool:
+    return MODEL_HIGHWAY_AUTO_LANE_CHANGE_PARAM in self.params.all_keys()
+
   def read_params(self) -> None:
     self.lane_change_bsm_delay = self.params.get_bool("AutoLaneChangeBsmDelay")
     self.lane_change_set_timer = self.params.get("AutoLaneChangeTimer", return_default=True)
-    self.model_highway_auto_lane_change_enabled = self.params.get_bool("ModelHighwayAutoLaneChange")
+    self.model_highway_auto_lane_change_enabled = self._model_highway_param_available() and \
+                                                  self.params.get_bool(MODEL_HIGHWAY_AUTO_LANE_CHANGE_PARAM)
 
   def update_params(self) -> None:
     if self.param_read_counter % 50 == 0:
