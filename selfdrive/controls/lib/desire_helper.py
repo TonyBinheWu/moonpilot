@@ -40,7 +40,7 @@ TURN_DESIRES = {
 
 
 class DesireHelper:
-  def __init__(self):
+  def __init__(self, bsm_available: bool = False):
     self.lane_change_state = LaneChangeState.off
     self.lane_change_direction = LaneChangeDirection.none
     self.lane_change_timer = 0.0
@@ -48,7 +48,7 @@ class DesireHelper:
     self.keep_pulse_timer = 0.0
     self.prev_one_blinker = False
     self.desire = log.Desire.none
-    self.alc = AutoLaneChangeController(self)
+    self.alc = AutoLaneChangeController(self, bsm_available)
     self.lane_turn_controller = LaneTurnController(self)
     self.lane_turn_direction = TurnDirection.none
 
@@ -62,13 +62,15 @@ class DesireHelper:
     v_ego = carstate.vEgo
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
+    lane_change_disabled = self.alc.lane_change_set_timer == AutoLaneChangeMode.OFF and \
+                           not self.alc.model_highway_auto_lane_change_enabled
 
     # Lane turn controller update
     self.lane_turn_controller.update_lane_turn(blindspot_left=carstate.leftBlindspot, blindspot_right=carstate.rightBlindspot,
                                                left_blinker=carstate.leftBlinker, right_blinker=carstate.rightBlinker, v_ego=v_ego)
     self.lane_turn_direction = self.lane_turn_controller.get_turn_direction()
 
-    if not lateral_active or self.lane_change_timer > LANE_CHANGE_TIME_MAX or self.alc.lane_change_set_timer == AutoLaneChangeMode.OFF:
+    if not lateral_active or self.lane_change_timer > LANE_CHANGE_TIME_MAX or lane_change_disabled:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
     else:
@@ -91,7 +93,7 @@ class DesireHelper:
         blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
                               (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
 
-        self.alc.update_lane_change(blindspot_detected, carstate.brakePressed)
+        self.alc.update_lane_change(blindspot_detected, carstate.brakePressed, v_ego)
 
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
