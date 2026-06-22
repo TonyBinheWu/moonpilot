@@ -34,7 +34,6 @@ class LaneTurnController:
     self.lane_turn_value = float(self.params.get("LaneTurnValue", return_default=True)) * CV.MPH_TO_MS
     self.param_read_counter = 0
     self.enabled = self.params.get_bool("LaneTurnDesire")
-    self.map_turn_intent_enabled = self.params.get_bool("MapTurnIntentContext")
     self.map_speed_limit = 0.0
     self.road_name = ""
     self.map_turn_context_active = False
@@ -46,7 +45,6 @@ class LaneTurnController:
 
   def read_params(self):
     self.enabled = self.params.get_bool("LaneTurnDesire")
-    self.map_turn_intent_enabled = self.params.get_bool("MapTurnIntentContext")
     value = float(self.params.get("LaneTurnValue", return_default=True)) * CV.MPH_TO_MS
     self.lane_turn_value = min(float(LANE_CHANGE_SPEED_MIN), value)
     self.map_speed_limit = float(self.params.get("MapSpeedLimit", return_default=True) or 0.0)
@@ -58,9 +56,6 @@ class LaneTurnController:
     self.param_read_counter += 1
 
   def _map_turn_context(self, v_ego: float) -> bool:
-    if not self.map_turn_intent_enabled:
-      return False
-
     if v_ego < self.lane_turn_value:
       return True
 
