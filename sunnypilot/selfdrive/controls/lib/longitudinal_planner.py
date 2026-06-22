@@ -5,9 +5,11 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 
-from cereal import messaging, custom
+from cereal import messaging, custom, log
 from opendbc.car import structs
 from openpilot.common.constants import CV
+from openpilot.common.params import Params
+from openpilot.common.realtime import DT_MDL
 from openpilot.selfdrive.car.cruise import V_CRUISE_MAX
 from openpilot.sunnypilot.selfdrive.controls.lib.dec.dec import DynamicExperimentalController
 from openpilot.sunnypilot.selfdrive.controls.lib.e2e_alerts_helper import E2EAlertsHelper
@@ -19,10 +21,17 @@ from openpilot.sunnypilot.models.helpers import get_active_bundle
 
 DecState = custom.LongitudinalPlanSP.DynamicExperimentalControl.DynamicExperimentalControlState
 LongitudinalPlanSource = custom.LongitudinalPlanSP.LongitudinalPlanSource
+EventNameSP = custom.OnroadEventSP.EventName
+LaneChangeState = log.LaneChangeState
+
+LANE_CHANGE_SUGGESTION_SPEED_MIN = 80 * CV.KPH_TO_MS
+LANE_CHANGE_SUGGESTION_PROB_THRESHOLD = 0.35
+LANE_CHANGE_SUGGESTION_COOLDOWN = 8.0
 
 
 class LongitudinalPlannerSP:
   def __init__(self, CP: structs.CarParams, CP_SP: structs.CarParamsSP, mpc):
+    self.params = Params()
     self.events_sp = EventsSP()
     self.resolver = SpeedLimitResolver()
     self.dec = DynamicExperimentalController(CP, mpc)
@@ -32,6 +41,7 @@ class LongitudinalPlannerSP:
     self.generation = int(model_bundle.generation) if (model_bundle := get_active_bundle()) else None
     self.source = LongitudinalPlanSource.cruise
     self.e2e_alerts_helper = E2EAlertsHelper()
+    self.lane_change_suggestion_cooldown = 0.0
 
     self.output_v_target = 0.
     self.output_a_target = 0.
@@ -42,6 +52,50 @@ class LongitudinalPlannerSP:
       return experimental_mode
 
     return experimental_mode and self.dec.mode() == "blended"
+
+  @staticmethod
+  def _model_lane_change_prob(meta, desire) -> float:
+    probs = []
+    desire_state = meta.desireState
+    if len(desire_state) > desire:
+      probs.append(desire_state[desire])
+
+    desire_prediction = meta.desirePrediction
+    desire_count = len(log.Desire.schema.enumerants)
+    if desire_count > 0 and len(desire_prediction) > desire:
+      probs.extend(desire_prediction[desire::desire_count])
+
+    return max(probs, default=0.0)
+
+  def _lane_change_suggestion_available(self, sm: messaging.SubMaster) -> bool:
+    if self.lane_change_suggestion_cooldown > 0.0:
+      self.lane_change_suggestion_cooldown = max(self.lane_change_suggestion_cooldown - DT_MDL, 0.0)
+      return False
+
+    if not self.params.get_bool("ModelHighwayAutoLaneChange"):
+      return False
+
+    CS = sm['carState']
+    if CS.vEgo < LANE_CHANGE_SUGGESTION_SPEED_MIN:
+      return False
+
+    if CS.leftBlinker or CS.rightBlinker or CS.brakePressed or CS.gasPressed or CS.steeringPressed:
+      return False
+
+    if not sm['carControl'].latActive:
+      return False
+
+    meta = sm['modelV2'].meta
+    if meta.laneChangeState != LaneChangeState.off:
+      return False
+
+    left_prob = self._model_lane_change_prob(meta, log.Desire.laneChangeLeft)
+    right_prob = self._model_lane_change_prob(meta, log.Desire.laneChangeRight)
+
+    left_available = left_prob > LANE_CHANGE_SUGGESTION_PROB_THRESHOLD and not CS.leftBlindspot
+    right_available = right_prob > LANE_CHANGE_SUGGESTION_PROB_THRESHOLD and not CS.rightBlindspot
+
+    return left_available or right_available
 
   def update_targets(self, sm: messaging.SubMaster, v_ego: float, a_ego: float, v_cruise: float) -> tuple[float, float]:
     CS = sm['carState']
@@ -77,6 +131,9 @@ class LongitudinalPlannerSP:
     self.events_sp.clear()
     self.dec.update(sm)
     self.e2e_alerts_helper.update(sm, self.events_sp)
+    if self._lane_change_suggestion_available(sm):
+      self.events_sp.add(EventNameSP.laneChangeSuggested)
+      self.lane_change_suggestion_cooldown = LANE_CHANGE_SUGGESTION_COOLDOWN
 
   def publish_longitudinal_plan_sp(self, sm: messaging.SubMaster, pm: messaging.PubMaster) -> None:
     plan_sp_send = messaging.new_message('longitudinalPlanSP')
