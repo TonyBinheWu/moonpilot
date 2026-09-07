@@ -5,3 +5,4 @@ matplotlib>=3.9,<4
 tensorboard>=2.18,<3
 onnxscript>=0.3
 pytest>=8,<10
+streamlit==1.63.0

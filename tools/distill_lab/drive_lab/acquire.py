@@ -6,10 +6,11 @@ import shutil
 import subprocess
 import urllib.request
 
-from .common import TEACHER_SHA, checked_id, digest, write_json
+from .common import TEACHER_SHA, checked_id, digest, write_json, inherited_job_fds
 
 
 def fetch_device(root, host, route):
+    from .tasks import SSH_OPTIONS
     # No password storage, no remote shell supplied by the UI, no modification of the device.
     if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.@-]*", host):
         raise ValueError("請使用 SSH config 的主機別名，例如 comma")
@@ -17,7 +18,7 @@ def fetch_device(root, host, route):
         raise ValueError("route 請使用 /data/media/0/realdata 下行程名稱，移除最後 --片段序號")
     remote = "import pathlib,json; print(json.dumps([p.name for p in pathlib.Path('/data/media/0/realdata').iterdir() if p.is_dir()]))"
     import shlex
-    names = json.loads(subprocess.check_output(["ssh", host, "python3 -c " + shlex.quote(remote)], text=True))
+    names = json.loads(subprocess.check_output(["ssh", *SSH_OPTIONS, host, "python3 -c " + shlex.quote(remote)], text=True, timeout=60, pass_fds=inherited_job_fds()))
     selected = sorted(n for n in names if n.startswith(route + "--") and n.rsplit("--", 1)[-1].isdigit())
     if not selected:
         raise ValueError("找不到行程；請確認實際目錄名稱、SSH 設定與裝置仍保有完整紀錄")
@@ -26,10 +27,10 @@ def fetch_device(root, host, route):
             raise ValueError("裝置回傳非預期的目錄名稱")
         target = root / "raw" / name
         target.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["rsync", "--archive", "--partial", "--protect-args",
+        subprocess.run(["rsync", "--archive", "--partial", "--protect-args", "-e", shlex.join(["ssh", *SSH_OPTIONS]),
                         "--include=rlog", "--include=rlog.zst", "--include=rlog.bz2",
                         "--include=fcamera.hevc", "--include=ecamera.hevc", "--exclude=*",
-                        f"{host}:/data/media/0/realdata/{name}/", str(target) + "/"], check=True)
+                        f"{host}:/data/media/0/realdata/{name}/", str(target) + "/"], check=True, pass_fds=inherited_job_fds())
     return selected
 
 

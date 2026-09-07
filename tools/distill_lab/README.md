@@ -14,20 +14,24 @@ cd spark-driving-lab
 git sparse-checkout set tools/distill_lab
 cd tools/distill_lab
 bash bootstrap.sh
-upstream/.venv/bin/jupyter lab --ip=127.0.0.1 workflow.ipynb
+bash gui.sh
 ```
 
-先安裝 `uv`、`ffmpeg` 與 `rsync`。`bootstrap.sh` 使用上游鎖定的 Python 3.12、PyTorch／CUDA 套件，新增 Jupyter 與 TensorBoard，最後執行環境檢查。可能下載數 GB 依賴；請依 Spark 的實際可用 SSD 容量保留影片、快取與 checkpoint 空間。程式不會自動修改驅動或升級作業系統。
+先安裝 `uv`、`ffmpeg` 與 `rsync`。`bootstrap.sh` 使用上游鎖定的 Python 3.12、PyTorch／CUDA 套件，新增 Streamlit、Jupyter 與 TensorBoard，最後執行環境檢查。可能下載數 GB 依賴；請依 Spark 的實際可用 SSD 容量保留影片、快取與 checkpoint 空間。程式不會自動修改驅動或升級作業系統。
 
 在其他電腦操作 Spark：
 
 ```bash
-ssh -L 8888:127.0.0.1:8888 -L 6006:127.0.0.1:6006 spark
+ssh -N -L 8501:127.0.0.1:8501 spark
 ```
 
-`spark`、`comma` 是你自己設定的 SSH 主機別名。保留 Jupyter 的預設登入 token，不要公開服務埠。
+`spark`、`comma` 是你自己設定的 SSH 主機別名。在 Windows 瀏覽器開啟 [http://127.0.0.1:8501](http://127.0.0.1:8501)。服務預設只監聽 Spark 的 localhost，透過 SSH 通道操作。
 
-打開終端機提供的 Jupyter 連結，選擇 **「駕駛模型實驗室 · DGX Spark」** kernel。Notebook 有資料預覽、訓練開始／停止／續訓按鈕、loss／耗時／記憶體圖與軌跡比較。
+網頁提供總覽、資料、訓練、評估與匯出、模擬與微調、車端部署、工作紀錄七個頁面。工作在獨立程序執行，關閉網頁不會中斷訓練。操作步驟與限制見 [GUI 操作手冊](docs/GUI_zh-TW.md)。
+
+已安裝舊版時，更新分支後執行 `uv pip install --python upstream/.venv/bin/python -r requirements-ui.txt`，再執行 `bash gui.sh`。不用重新下載核心訓練環境。
+
+原本的 Notebook 保留：`upstream/.venv/bin/jupyter lab --ip=127.0.0.1 workflow.ipynb`，選擇 **「駕駛模型實驗室 · DGX Spark」** kernel。不要從 Notebook 與 GUI 同時修改同一份實驗。
 
 ## 全流程
 

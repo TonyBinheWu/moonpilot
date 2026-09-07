@@ -1,5 +1,7 @@
 # 從行車資料到駕駛模型
 
+若希望使用表單與按鈕，先執行 `bash gui.sh`，依 [GUI 操作手冊](GUI_zh-TW.md) 操作。本文件保留相同流程的命令列說明。
+
 所有命令在 Spark 的 `tools/distill_lab` 目錄執行，除非另有標示。
 
 ```bash

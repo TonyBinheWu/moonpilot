@@ -15,4 +15,6 @@ Intentional changes to the vendored snapshot:
 
 For an upstream update, import it into a new research branch, review these patches and the output contract, rerun tests and hardware validation. Do not blindly replace the lockfile or point training at moving master branches.
 
-UI package ranges are in `requirements-ui.txt`; the core training environment remains pinned by upstream/uv.lock. Save `uv pip freeze --python upstream/.venv/bin/python` with each hardware experiment when exact UI/tool reproduction is needed.
+UI dependencies are in `requirements-ui.txt`; Streamlit is pinned to the tested 1.63.0 release, while other UI tools retain their version ranges. The core training environment remains pinned by upstream/uv.lock. Save `uv pip freeze --python upstream/.venv/bin/python` with each hardware experiment when exact UI/tool reproduction is needed.
+
+`webui.py`, `drive_lab/jobs.py` and `drive_lab/tasks.py` provide the local GUI, detached job execution, persistent status, operation validation and SSH orchestration. The GUI adds no change to the trained architecture or vehicle safety limits. Process liveness uses inherited kernel file locks. Vehicle operations retain the existing `car.py` checks and are never automatically retried by the GUI.

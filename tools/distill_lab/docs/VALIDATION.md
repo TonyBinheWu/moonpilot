@@ -7,10 +7,10 @@
 在 x86_64 CPU 測試環境、Python 3.12、PyTorch 2.13.0+cpu、TorchVision 0.28.0+cpu、ONNX 1.22.0、ONNX Runtime 1.29.0 執行：
 
 ```bash
-ORT_DISABLE_TELEMETRY=1 python -m pytest tools/distill_lab/tests -q
+ORT_DISABLE_TELEMETRY=1 STREAMLIT_BROWSER_GATHER_USAGE_STATS=false python -m pytest tools/distill_lab/tests -q
 ```
 
-結果：**30 passed，4 warnings，14.80 秒，程序 exit code 0**。另完成 Python 語法檢查、bootstrap shell 語法檢查、Notebook schema 及全部 code cell 的語法檢查。
+加入 GUI 後的完整結果：**54 passed，4 warnings，18.65 秒，程序 exit code 0**。GUI 使用 Streamlit 1.63.0。另完成 Python 語法檢查、bootstrap／GUI shell 語法檢查、TOML 設定檢查，以及原有 Notebook schema 與 code cell 語法檢查。
 
 初次測試完成斷言後，Microsoft 遙測連線被自動審查攔截；只呼叫 `disable_telemetry_events()` 仍未解決。依 [ONNX Runtime 1.29 官方版本說明](https://github.com/microsoft/onnxruntime/releases/tag/v1.29.0)，改在初始化前設定 `ORT_DISABLE_TELEMETRY=1`，最終重跑正常結束。工具、測試及上游推論入口都加入此設定；沒有放行該遙測連線。若既有 Notebook kernel 已先載入 ONNX Runtime，必須重啟 kernel 才能在初始化前生效。
 
@@ -28,6 +28,21 @@ ORT_DISABLE_TELEMETRY=1 python -m pytest tools/distill_lab/tests -q
 - 3X 與 four 攝影機參數差異。
 
 上述匯出測試使用**隨機初始化的測試權重**，只驗證工程相容性；沒有把測試權重作為已訓練模型交付。
+
+## GUI 與背景工作
+
+新增 24 項測試，包括：
+
+- Streamlit AppTest 驗證七個空資料頁面可開啟，單純瀏覽不啟動工作。
+- 環境檢查、公開資料下載、訓練、評估、匯出及車端編譯按鈕送出正確參數。
+- 真實本地背景 inventory 工作完成後，重建工作管理物件仍能讀取結果與紀錄。
+- 真實本地子程序的停止、非零退出碼保存，以及子程序仍存活時保留資源鎖。
+- 衝突工作拒絕啟動；車端操作拒絕取消；不接受未知操作、路徑跳脫、SSH 選項注入或錯誤確認文字。
+- 裝置識別不符、未確認 offroad 時，在任何遠端寫入前停止。
+
+初版程序追蹤在測試容器的 PID namespace 與 `/proc` 不一致時失敗，已改為核心維護的檔案鎖，並讓執行鎖傳遞至子程序。修正後上述測試與完整測試正常結束。
+
+AppTest 不是實體瀏覽器的視覺截圖測試。GUI 測試的實驗資料與裝置報告是隔離測試 fixture，沒有作為實際訓練或車端成果交付。未執行真實 SSH、Spark GPU 訓練或車輛部署。
 
 ## 真實公開標籤檢查
 

@@ -8,4 +8,5 @@ uv sync --project "$lab_root/upstream" --frozen
 uv pip install --python "$lab_root/upstream/.venv/bin/python" -r "$lab_root/requirements-ui.txt"
 "$lab_root/upstream/.venv/bin/python" -m ipykernel install --user --name distill-spark --display-name '駕駛模型實驗室 · DGX Spark'
 "$lab_root/upstream/.venv/bin/python" "$lab_root/lab.py" doctor
-echo '啟動介面：upstream/.venv/bin/jupyter lab --ip=127.0.0.1 workflow.ipynb'
+echo '啟動網頁介面：bash gui.sh'
+echo '進階 Notebook：upstream/.venv/bin/jupyter lab --ip=127.0.0.1 workflow.ipynb'

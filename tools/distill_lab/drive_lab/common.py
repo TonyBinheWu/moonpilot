@@ -11,6 +11,15 @@ TEACHER_SHA = "084747c75d2cbd23af65ab7a9e770bbd7b98bac9"
 SUNNYPILOT_SHA = "ca717be308d052389ac54beaa9eed1923b704e07"
 
 
+def inherited_job_fds():
+    """Keep the GUI execution lease through CLI and simulation descendants."""
+    value = os.environ.get("DISTILL_LAB_JOB_LOCK_FD")
+    if value is None: return ()
+    fd = int(value)
+    os.fstat(fd)
+    return (fd,)
+
+
 def digest(path):
     h = hashlib.sha256()
     with open(path, "rb") as f:

@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 
-from .common import LAB, UPSTREAM, checked_id, digest, read_json, work_dirs, write_json
+from .common import LAB, UPSTREAM, checked_id, digest, read_json, work_dirs, write_json, inherited_job_fds
 
 
 def doctor(root):
@@ -121,6 +121,9 @@ def main():
                 except Exception as e:
                     result.append({"source": directory.name, "error": str(e)})
             write_json(root / "reports" / "prepare-route.json", result)
+            if any("error" in r for r in result):
+                print(json.dumps(result, ensure_ascii=False, indent=2))
+                raise SystemExit(2)
     elif cmd == "split":
         from .training import dataset_manifest
         result = dataset_manifest(root, args.smoke, args.allow_assisted)
@@ -166,7 +169,7 @@ def main():
             else:
                 command += ["--actor", "supercombo"]
                 if args.on_policy: command += ["--on-policy", str(args.on_policy.resolve())]
-        subprocess.run(command, cwd=UPSTREAM, check=True)
+        subprocess.run(command, cwd=UPSTREAM, check=True, pass_fds=inherited_job_fds())
         if cmd == "rl-train":
             write_json(root / "runs" / args.name / "rl_provenance.json", {
                 "base_weights_sha256": digest(checkpoint), "dataset_sha256": digest(root / "dataset.json"),
