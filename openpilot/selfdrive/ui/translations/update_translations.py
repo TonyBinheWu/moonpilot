@@ -27,6 +27,7 @@ def update_translations():
   sunnylink_sources = chain(UI_DIR.glob("sunnypilot/**/sunnylink*.py"),
                            UI_DIR.glob("sunnypilot/**/onboarding.py"))
   files.extend(os.path.relpath(path, BASEDIR) for path in sorted(sunnylink_sources))
+  files.append(os.path.relpath(UI_DIR / "sunnypilot/layouts/settings/steering.py", BASEDIR))
 
   # Extract translatable strings and generate .pot template
   entries = extract_strings(files, BASEDIR)

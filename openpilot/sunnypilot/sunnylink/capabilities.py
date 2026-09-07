@@ -10,6 +10,7 @@ from openpilot.cereal import custom, messaging
 from opendbc.car.structs import car
 from opendbc.car.hyundai.values import CAR as HYUNDAI_CAR, UNSUPPORTED_LONGITUDINAL_CAR
 from opendbc.car.subaru.values import CAR as SUBARU_CAR, SubaruFlags
+from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque
 from opendbc.sunnypilot.car.tesla.values import TeslaFlagsSP
 from openpilot.common.params import Params
 from openpilot.common.swaglog import cloudlog
@@ -28,6 +29,7 @@ CAPABILITY_FIELDS = (
   "has_icbm",
   "icbm_available",
   "torque_allowed",
+  "hkg_low_speed_torque_available",
   "brand",
   "pcm_cruise",
   "alpha_long_available",
@@ -50,6 +52,7 @@ CAPABILITY_LABELS: dict[str, str] = {
   "has_icbm": "ICBM enabled",
   "icbm_available": "ICBM available",
   "torque_allowed": "torque steering (not available for angle steering vehicles)",
+  "hkg_low_speed_torque_available": "compatible HKG CAN-FD torque steering",
   "brand": "Vehicle brand",
   "pcm_cruise": "PCM cruise",
   "alpha_long_available": "Alpha Longitudinal available",
@@ -156,6 +159,7 @@ def generate_capabilities(params: Params | None = None) -> dict:
       # which is a separate concept and is not interchangeable.
       caps["steer_control_type"] = str(CP.steerControlType)
       caps["torque_allowed"] = CP.steerControlType != car.CarParams.SteerControlType.angle
+      caps["hkg_low_speed_torque_available"] = supports_low_speed_torque(CP)
       if not caps["brand"] and CP.brand:
         caps["brand"] = str(CP.brand)
       caps["pcm_cruise"] = bool(CP.pcmCruise)

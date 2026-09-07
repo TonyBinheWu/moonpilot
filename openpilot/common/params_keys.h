@@ -288,6 +288,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     // Torque lateral control custom params
     {"CustomTorqueParams", {PERSISTENT | BACKUP , BOOL}},
     {"EnforceTorqueControl", {PERSISTENT | BACKUP, BOOL}},
+    {"HkgLowSpeedTorque", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"LateralJerkTorqueController", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"LiveTorqueParamsToggle", {PERSISTENT | BACKUP , BOOL}},
     {"LiveTorqueParamsRelaxedToggle", {PERSISTENT | BACKUP , BOOL}},

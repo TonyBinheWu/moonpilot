@@ -504,6 +504,30 @@
           ]
         },
         {
+          "id": "hkg_low_speed_torque",
+          "title": "HKG Low-Speed Steering Torque",
+          "description": "Experimental low-speed steering assistance for compatible Hyundai, Kia and Genesis CAN-FD vehicles",
+          "items": [
+            {
+              "key": "HkgLowSpeedTorque",
+              "widget": "toggle",
+              "title": "HKG Low-Speed Steering Torque (Experimental)",
+              "description": "Defaults to off. Change only while offroad; takes effect on the next drive. Requires compatible HKG CAN-FD torque steering.",
+              "details": "Experimental feature requiring vehicle validation. Traditional CAN, angle steering and vehicles with alternate torque limits are unsupported.",
+              "enablement": [
+                {
+                  "type": "offroad_only"
+                },
+                {
+                  "type": "capability",
+                  "field": "hkg_low_speed_torque_available",
+                  "equals": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "id": "lane_change",
           "title": "Lane Change",
           "description": "Automatic lane change timing and behavior",

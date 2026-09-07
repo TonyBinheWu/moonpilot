@@ -5,6 +5,7 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 from opendbc.car.structs import car
+from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque
 from enum import IntEnum
 
 from openpilot.selfdrive.ui.ui_state import ui_state
@@ -91,6 +92,11 @@ class SteeringLayout(Widget):
       button_width=850,
       callback=lambda: self._set_current_panel(PanelType.TORQUE_CONTROL)
     )
+    self._hkg_low_speed_torque_toggle = toggle_item_sp(
+      param="HkgLowSpeedTorque",
+      title=lambda: tr("HKG Low-Speed Steering Torque (Experimental)"),
+      description=self._hkg_low_speed_torque_description,
+    )
     self._nnlc_toggle = toggle_item_sp(
       param="NeuralNetworkLateralControl",
       title=lambda: tr("Neural Network Lateral Control (NNLC)"),
@@ -109,6 +115,7 @@ class SteeringLayout(Widget):
       LineSeparatorSP(40),
       self._torque_control_toggle,
       self._torque_customization_button,
+      self._hkg_low_speed_torque_toggle,
       LineSeparatorSP(40),
       self._nnlc_toggle,
     ]
@@ -116,6 +123,17 @@ class SteeringLayout(Widget):
 
   def _set_current_panel(self, panel: PanelType):
     self._current_panel = panel
+
+  @staticmethod
+  def _hkg_low_speed_torque_description():
+    description = tr("Increase low-speed steering assistance. Default: off. Change only offroad; applies next drive. Requires vehicle validation.")
+    if ui_state.CP is None:
+      status = tr("Start the vehicle to check vehicle compatibility.")
+    elif not supports_low_speed_torque(ui_state.CP):
+      status = tr("Unavailable for this vehicle. Requires compatible HKG CAN-FD torque steering.")
+    else:
+      status = tr("Compatible HKG CAN-FD vehicle detected.")
+    return f"<b>{status}</b><br><br>{description}"
 
   def _update_state(self):
     super()._update_state()
@@ -143,6 +161,7 @@ class SteeringLayout(Widget):
     self._nnlc_toggle.action_item.set_enabled(ui_state.is_offroad() and torque_allowed and not enforce_torque_enabled and not jerk_aware_enabled)
     self._torque_control_toggle.action_item.set_enabled(ui_state.is_offroad() and torque_allowed and not nnlc_enabled)
     self._torque_customization_button.action_item.set_enabled(self._torque_control_toggle.action_item.get_state())
+    self._hkg_low_speed_torque_toggle.action_item.set_enabled(ui_state.is_offroad() and supports_low_speed_torque(ui_state.CP))
 
   def _render(self, rect):
     if self._current_panel == PanelType.LANE_CHANGE:

@@ -198,6 +198,10 @@ msgstr "點選「贊助」按鈕瞭解詳情"
 msgid "Close"
 msgstr "關閉"
 
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Compatible HKG CAN-FD vehicle detected."
+msgstr "已辨識到相容的 HKG CAN-FD 車型。"
+
 #: openpilot/selfdrive/ui/layouts/settings/software.py
 msgid "Current Version"
 msgstr "目前版本"
@@ -414,6 +418,10 @@ msgstr "在手機上前往 https://connect.comma.ai"
 msgid "HIGH"
 msgstr "高"
 
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "HKG Low-Speed Steering Torque (Experimental)"
+msgstr "HKG 低速轉向扭力（實驗功能）"
+
 #: openpilot/system/ui/widgets/network.py
 msgid "Hidden Network"
 msgstr "隱藏網路"
@@ -433,6 +441,10 @@ msgstr "若贊助狀態未更新，請至 https://community.sunnypilot.ai 社群
 #: openpilot/selfdrive/ui/sunnypilot/layouts/onboarding.py
 msgid "If sunnylink is disabled, features such as settings management, remote monitoring, real-time dashboards will be unavailable."
 msgstr "停用 sunnylink 後，將無法使用設定管理、遠端監控、即時儀表板等功能。"
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Increase low-speed steering assistance. Default: off. Change only offroad; applies next drive. Requires vehicle validation."
+msgstr "提高低速轉向輔助。預設關閉，僅限非行車狀態調整，於下次行車時生效。仍須實車驗證。"
 
 #: openpilot/selfdrive/ui/layouts/settings/software.py
 msgid "Install Update"
@@ -763,6 +775,10 @@ msgstr "基本備份與還原功能無須贊助即可使用"
 msgid "Standard"
 msgstr "標準"
 
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Start the vehicle to check vehicle compatibility."
+msgstr "請啟動車輛以確認車型相容性。"
+
 #: openpilot/selfdrive/ui/onroad/alert_renderer.py
 msgid "System Unresponsive"
 msgstr "系統無回應"
@@ -814,6 +830,10 @@ msgstr "更新"
 #: openpilot/selfdrive/ui/sunnypilot/layouts/settings/sunnylink.py
 msgid "Unable to restore the settings, try again later."
 msgstr "無法還原設定，請稍後再試。"
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Unavailable for this vehicle. Requires compatible HKG CAN-FD torque steering."
+msgstr "此車型無法使用。需要相容的 HKG CAN-FD 扭力轉向系統。"
 
 #: openpilot/selfdrive/ui/layouts/settings/software.py
 msgid "Uninstall"
