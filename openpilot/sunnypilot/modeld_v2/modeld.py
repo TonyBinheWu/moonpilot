@@ -35,6 +35,7 @@ from openpilot.common.transformations.model import get_warp_matrix
 from openpilot.system import sentry
 from openpilot.system.camerad.cameras.nv12_info import get_nv12_info
 from openpilot.selfdrive.controls.lib.desire_helper import DesireHelper
+from openpilot.sunnypilot.navd.desire import NavigationTurn
 from openpilot.selfdrive.controls.lib.drive_helpers import get_accel_from_plan, smooth_value
 from openpilot.selfdrive.modeld.modeld import ChestnutState
 
@@ -372,7 +373,8 @@ def main(demo=False):
   # messaging
   pub_socks = ["modelV2", "drivingModelData", "cameraOdometry", "modelDataV2SP"] + (["chestnutState"] if CHESTNUT else [])
   pm = PubMaster(pub_socks)
-  sm = SubMaster(["deviceState", "carState", "narrowRoadCameraState", "extrinsicsCalibration", "driverMonitoringState", "carControl", "lateralDelay"])
+  sm = SubMaster(["deviceState", "carState", "narrowRoadCameraState", "extrinsicsCalibration", "driverMonitoringState", "carControl", "lateralDelay",
+                  "navigationStateSP"], ignore_alive=["navigationStateSP"], ignore_avg_freq=["navigationStateSP"], ignore_valid=["navigationStateSP"])
 
   publish_state = PublishState()
   chestnut_state = ChestnutState(pm, model.chestnut) if CHESTNUT else None
@@ -403,6 +405,8 @@ def main(demo=False):
   prev_action = log.ModelDataV2.Action()
 
   DH = DesireHelper()
+  nav_turn = NavigationTurn()
+  nav_turn_enabled = False
   meta_constants = load_meta_constants()
   RELC = RoadEdgeLaneChangeController()
 
@@ -440,7 +444,19 @@ def main(demo=False):
       meta_extra = meta_main
 
     sm.update(0)
+    if run_count % 20 == 0:
+      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+                          not params.get_bool("BlinkerPauseLateralControl"))
     desire = DH.desire
+    now = time.monotonic()
+    nav_fresh = sm.valid['navigationStateSP'] and 0 <= now - sm.logMonoTime['navigationStateSP'] / 1e9 < 2.5
+    nav_desire = nav_turn.update(sm['navigationStateSP'], sm['carState'], now,
+                                enabled=nav_turn_enabled and live_calib_seen,
+                                fresh=nav_fresh and sm.all_checks(['carState', 'carControl']),
+                                lateral_active=sm['carControl'].latActive, existing_desire=desire,
+                                lane_change_active=DH.lane_change_state != log.LaneChangeState.off)
+    if nav_desire:
+      desire = nav_desire
     is_rhd = sm["driverMonitoringState"].isRHD
     frame_id = sm["narrowRoadCameraState"].frameId
     v_ego = max(sm["carState"].vEgo, 0.)
@@ -509,6 +525,7 @@ def main(demo=False):
       params.put_bool("ChestnutActive", False)
       assert small_model is not None
       model = small_model
+      nav_turn.cancel()
       if chestnut_state is not None:
         chestnut_state.big = False
       run_count = 0
@@ -528,6 +545,7 @@ def main(demo=False):
                      publish_state, meta_main.frame_id, meta_extra.frame_id, frame_id,
                      frame_drop_ratio, meta_main.timestamp_eof, model_execution_time, live_calib_seen, meta_constants)
       modelv2_send.modelV2.big = model.chestnut
+      mdv2sp_send.valid = modelv2_send.valid
 
       desire_state = modelv2_send.modelV2.meta.desireState
       l_lane_change_prob = desire_state[log.Desire.laneChangeLeft]
@@ -538,6 +556,7 @@ def main(demo=False):
       modelv2_send.modelV2.meta.laneChangeState = DH.lane_change_state
       modelv2_send.modelV2.meta.laneChangeDirection = DH.lane_change_direction
       mdv2sp_send.modelDataV2SP.laneTurnDirection = DH.lane_turn_direction
+      mdv2sp_send.modelDataV2SP.navigationTurn = nav_desire
       drivingdata_send.drivingModelData.meta.laneChangeState = DH.lane_change_state
       drivingdata_send.drivingModelData.meta.laneChangeDirection = DH.lane_change_direction
 

@@ -1,0 +1,79 @@
+[
+  {
+    "file": "driving_supercombo.onnx",
+    "sha256": "659727c4d4839adc4992a254409a54259a8756a743f2d567bf5fdc6579f8009b",
+    "inputs": {
+      "img": [
+        1,
+        12,
+        128,
+        256
+      ],
+      "big_img": [
+        1,
+        12,
+        128,
+        256
+      ],
+      "features_buffer": [
+        1,
+        24,
+        512
+      ],
+      "desire_pulse": [
+        1,
+        25,
+        8
+      ],
+      "traffic_convention": [
+        1,
+        2
+      ],
+      "action_t": [
+        1,
+        2
+      ]
+    },
+    "navigation_inputs": [],
+    "note": "輸入尺寸不代表完整光學視野；還必須檢查相機轉換、訓練前處理與感知輸出規格。"
+  },
+  {
+    "file": "big_driving_supercombo.onnx",
+    "sha256": "1791d5940b2c048d0639813426dd2cf1d6f2a6727ed51e17c8bcea8bbe754123",
+    "inputs": {
+      "img": [
+        1,
+        12,
+        128,
+        256
+      ],
+      "big_img": [
+        1,
+        12,
+        128,
+        256
+      ],
+      "desire_pulse": [
+        1,
+        33,
+        8
+      ],
+      "traffic_convention": [
+        1,
+        2
+      ],
+      "action_t": [
+        1,
+        2
+      ],
+      "features_buffer": [
+        1,
+        32,
+        32,
+        512
+      ]
+    },
+    "navigation_inputs": [],
+    "note": "輸入尺寸不代表完整光學視野；還必須檢查相機轉換、訓練前處理與感知輸出規格。"
+  }
+]

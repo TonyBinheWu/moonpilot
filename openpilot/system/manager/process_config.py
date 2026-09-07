@@ -167,6 +167,7 @@ procs = [
 
 # sunnypilot
 procs += [
+  PythonProcess("navigationd", "openpilot.sunnypilot.navd.navigationd", only_onroad),
   # Models
   PythonProcess("models_manager", "openpilot.sunnypilot.models.manager", only_offroad),
   NativeProcess("modeld_tinygrad", "openpilot/sunnypilot/modeld_v2", ["./modeld"], and_(only_onroad, is_tinygrad_model)),

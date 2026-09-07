@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import time
 from numbers import Number
 
 from openpilot.cereal import log
@@ -23,6 +24,7 @@ from openpilot.selfdrive.modeld.modeld import LAT_SMOOTH_SECONDS
 from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 
 from openpilot.sunnypilot.selfdrive.controls.controlsd_ext import ControlsExt
+from openpilot.sunnypilot.selfdrive.controls.lib.model_blinkers import hkg_model_blinkers
 
 State = log.SelfdriveState.OpenpilotState
 LaneChangeState = log.LaneChangeState
@@ -127,6 +129,14 @@ class Controls(ControlsExt):
     if model_v2.meta.laneChangeState != LaneChangeState.off:
       CC.leftBlinker = model_v2.meta.laneChangeDirection == LaneChangeDirection.left
       CC.rightBlinker = model_v2.meta.laneChangeDirection == LaneChangeDirection.right
+
+    if self.CP.brand == 'hyundai':
+      sp = self.sm['modelDataV2SP']
+      fresh = self.sm.all_checks(['modelV2', 'modelDataV2SP']) and all(
+        0 <= time.monotonic() - self.sm.logMonoTime[s] / 1e9 < 0.25 for s in ('modelV2', 'modelDataV2SP'))
+      CC.leftBlinker, CC.rightBlinker = hkg_model_blinkers(
+        self.CP, CS, CC.latActive, fresh, model_v2.meta.laneChangeState.raw, model_v2.meta.laneChangeDirection.raw,
+        sp.navigationTurn.raw)
 
     if not CC.latActive:
       self.LaC.reset()

@@ -528,6 +528,29 @@
           ]
         },
         {
+          "id": "hkg_model_blinkers",
+          "title": "HKG \u6a21\u578b\u65b9\u5411\u71c8",
+          "description": "CAN-FD\uff0fHDA2 \u65b9\u5411\u71c8\u5be6\u9a57\u529f\u80fd",
+          "items": [
+            {
+              "key": "HkgModelBlinkers",
+              "widget": "toggle",
+              "title": "HKG \u6a21\u578b\u65b9\u5411\u71c8\uff08\u5be6\u9a57\u529f\u80fd\uff09",
+              "description": "\u9810\u8a2d\u95dc\u9589\u3002\u975e\u884c\u8eca\u72c0\u614b\u8a2d\u5b9a\uff0c\u4e0b\u6b21\u884c\u8eca\u751f\u6548\u3002\u6a21\u578b\u5df2\u63a5\u53d7\u7684\u8b8a\u63db\u8eca\u9053\u6216\u5c0e\u822a\u8f49\u5f4e\u610f\u5716\u53ef\u63a7\u5236\u65b9\u5411\u71c8\uff1b\u9700\u5be6\u8eca\u9a57\u8b49\u3002",
+              "enablement": [
+                {
+                  "type": "offroad_only"
+                },
+                {
+                  "type": "capability",
+                  "field": "hkg_model_blinkers_available",
+                  "equals": true
+                }
+              ]
+            }
+          ]
+        },
+        {
           "id": "lane_change",
           "title": "Lane Change",
           "description": "Automatic lane change timing and behavior",

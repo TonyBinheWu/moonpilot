@@ -462,6 +462,7 @@ struct ModelDataV2SP @0xa1680744031fdb2d {
   laneTurnDirection @0 :TurnDirection;
   leftLaneChangeEdgeBlock @1 :Bool;
   rightLaneChangeEdgeBlock @2 :Bool;
+  navigationTurn @3 :TurnDirection;
 
   enum TurnDirection {
     none @0;
@@ -470,7 +471,26 @@ struct ModelDataV2SP @0xa1680744031fdb2d {
   }
 }
 
-struct CustomReserved10 @0xcb9fd56c7057593a {
+struct NavigationStateSP @0xcb9fd56c7057593a {
+  status @0 :Status;
+  routeId @1 :Text;
+  stepIndex @2 :UInt32;
+  maneuverType @3 :Text;
+  modifier @4 :Text;
+  instruction @5 :Text;
+  maneuverDistance @6 :Float32;
+  distanceRemaining @7 :Float32;
+  timeRemaining @8 :Float32;
+
+  enum Status {
+    off @0;
+    waitingGps @1;
+    routing @2;
+    active @3;
+    offRoute @4;
+    arrived @5;
+    error @6;
+  }
 }
 
 struct CustomReserved11 @0xc2243c65e0340384 {

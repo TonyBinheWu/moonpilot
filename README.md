@@ -72,3 +72,4 @@ By becoming a sponsor, you will gain access to exclusive content, early access t
 Your continuous love and support are greatly appreciated! Enjoy 🥰
 
 <span>-</span> Jason, Founder of sunnypilot
+> 本分支為 `hkg-enhanced` 實驗版。Mapbox 導航、HKG 模型方向燈、安裝方法與尚未完成的模型／Full-FOV 功能，請先閱讀 [HKG Enhanced 使用說明](docs/HKG_ENHANCED.md)。

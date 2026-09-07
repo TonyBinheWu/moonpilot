@@ -38,6 +38,7 @@ from openpilot.selfdrive.modeld.helpers import chestnut_present, chestnut_compil
 from openpilot.sunnypilot.livedelay.helpers import get_lat_delay
 from openpilot.sunnypilot.modeld_v2.modeld_base import ModelStateBase
 from openpilot.sunnypilot.selfdrive.controls.lib.relc import RoadEdgeLaneChangeController
+from openpilot.sunnypilot.navd.desire import NavigationTurn
 
 SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
 
@@ -320,7 +321,8 @@ def main(demo=False):
   # messaging
   pub_socks = ["modelV2", "drivingModelData", "cameraOdometry", "modelDataV2SP"] + (["chestnutState"] if CHESTNUT else [])
   pm = PubMaster(pub_socks)
-  sm = SubMaster(["deviceState", "carState", "narrowRoadCameraState", "extrinsicsCalibration", "driverMonitoringState", "carControl", "lateralDelay"])
+  sm = SubMaster(["deviceState", "carState", "narrowRoadCameraState", "extrinsicsCalibration", "driverMonitoringState", "carControl", "lateralDelay",
+                  "navigationStateSP"], ignore_alive=["navigationStateSP"], ignore_avg_freq=["navigationStateSP"], ignore_valid=["navigationStateSP"])
 
   publish_state = PublishState()
   params = Params()
@@ -351,6 +353,9 @@ def main(demo=False):
   prev_action = log.ModelDataV2.Action()
 
   DH = DesireHelper()
+  nav_turn = NavigationTurn()
+  nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+                      not params.get_bool("BlinkerPauseLateralControl"))
   RELC = RoadEdgeLaneChangeController()
 
   while True:
@@ -387,7 +392,19 @@ def main(demo=False):
       meta_extra = meta_main
 
     sm.update(0)
+    if run_count % 20 == 0:
+      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+                          not params.get_bool("BlinkerPauseLateralControl"))
     desire = DH.desire
+    now = time.monotonic()
+    nav_fresh = sm.valid['navigationStateSP'] and 0 <= now - sm.logMonoTime['navigationStateSP'] / 1e9 < 2.5
+    nav_desire = nav_turn.update(sm['navigationStateSP'], sm['carState'], now,
+                                enabled=nav_turn_enabled and extrinsics_calibration_seen,
+                                fresh=nav_fresh and sm.all_checks(['carState', 'carControl']),
+                                lateral_active=sm['carControl'].latActive, existing_desire=desire,
+                                lane_change_active=DH.lane_change_state != log.LaneChangeState.off)
+    if nav_desire:
+      desire = nav_desire
     is_rhd = sm["driverMonitoringState"].isRHD
     frame_id = sm["narrowRoadCameraState"].frameId
     v_ego = max(sm["carState"].vEgo, 0.)
@@ -446,6 +463,7 @@ def main(demo=False):
       params.put_bool("ChestnutActive", False)
       assert small_model is not None
       model = small_model
+      nav_turn.cancel()
       if chestnut_state is not None:
         chestnut_state.big = False
       run_count = 0
@@ -470,11 +488,13 @@ def main(demo=False):
       r_lane_change_prob = desire_state[log.Desire.laneChangeRight]
       lane_change_prob = l_lane_change_prob + r_lane_change_prob
       mdv2sp_send = messaging.new_message('modelDataV2SP')
+      mdv2sp_send.valid = modelv2_send.valid
       left_edge, right_edge = RELC.update_and_fill(modelv2_send.modelV2, mdv2sp_send.modelDataV2SP, v_ego)
       DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, left_edge, right_edge)
       modelv2_send.modelV2.meta.laneChangeState = DH.lane_change_state
       modelv2_send.modelV2.meta.laneChangeDirection = DH.lane_change_direction
       mdv2sp_send.modelDataV2SP.laneTurnDirection = DH.lane_turn_direction
+      mdv2sp_send.modelDataV2SP.navigationTurn = nav_desire
 
       fill_driving_model_data(drivingdata_send, modelv2_send)
       fill_pose_msg(posenet_send, model_output, meta_main.frame_id, vipc_dropped_frames, meta_main.timestamp_eof, extrinsics_calibration_seen)
