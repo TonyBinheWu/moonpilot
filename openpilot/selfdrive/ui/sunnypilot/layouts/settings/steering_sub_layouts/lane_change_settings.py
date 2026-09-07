@@ -6,6 +6,7 @@ See the LICENSE.md file in the root directory for more details.
 """
 from collections.abc import Callable
 import pyray as rl
+from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque
 
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.multilang import tr
@@ -57,15 +58,39 @@ class LaneChangeSettingsLayout(Widget):
       description=lambda: tr("Blocks the lane change if the model sees a road edge on your signaled side."),
     )
 
+    # Deliberately unbound: no Params key or callback can enable vehicle control.
+    self._hkg_creep_lane_change_preview = toggle_item_sp(
+      title=lambda: tr("HKG Creep Lane Change (UI Preview)"),
+      description=self._hkg_creep_lane_change_description,
+      initial_state=False,
+      enabled=False,
+    )
+
     items = [
       self._lane_change_timer,
       LineSeparatorSP(40),
       self._bsm_delay,
       LineSeparatorSP(40),
       self._road_edge_block,
+      LineSeparatorSP(40),
+      self._hkg_creep_lane_change_preview,
     ]
 
     return items
+
+  @staticmethod
+  def _hkg_creep_lane_change_description():
+    description = tr("Interface preview only. This switch is unavailable and does not enable vehicle control. " +
+                     "Proposed scope: compatible HKG vehicles, 0-5 km/h, only during an automatic lane change. " +
+                     "Model perception and lead distance are proposed inputs; collision clearance has not been validated. " +
+                     "The proposed torque command cap of 400 is not active.")
+    if ui_state.CP is None:
+      status = tr("Start the vehicle to check vehicle compatibility.")
+    elif not supports_low_speed_torque(ui_state.CP):
+      status = tr("Unavailable for this vehicle. Requires compatible HKG CAN-FD torque steering.")
+    else:
+      status = tr("Compatible HKG CAN-FD vehicle detected.")
+    return f"<b>{status}</b><br><br>{description}"
 
   def _update_state(self):
     super()._update_state()
