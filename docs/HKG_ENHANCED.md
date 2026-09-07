@@ -11,7 +11,7 @@
 | 逐向提示、剩餘距離、估計時間、取消與重新規劃 | 已實作，畫面為文字導航橫幅；尚無地圖圖磚與路線圖 |
 | 導航轉彎意圖送入大小模型 | 已接入兩個模型執行流程的既有 `turnLeft`／`turnRight` desire 輸入；預設關閉，每個轉彎需駕駛輕推方向盤確認 |
 | HKG 模型方向燈開關 | 已實作於 Steering 與 sunnylink；預設關閉；限制 CAN-FD LKA／HDA2 架構 |
-| taco2 的路線特徵條件式駕駛模型 | **未完成**；本基底模型不具備 `nav_features` 等導航輸入，不能直接還原 taco2 的模型導航 |
+| taco2 的路線特徵條件式駕駛模型 | **大模型導航仍未完成**；已補齊可選 `nav_features` 編譯／執行器輸入，並完成 taco2 原始模型的離線推論實驗。本基底權重仍沒有導航輸入，行車時尚未接入導航特徵 |
 | Chestnut Full-FOV 感知／Shadow Mode | **未完成且不可啟用**；未提供相容的全視野感知權重與輸出規格。已附模型輸入稽核工具，沒有假造 `fullFovPerception` 結果 |
 
 這是第一階段原始碼實驗版，不是可依目的地自行完成全程行駛的版本。
@@ -39,6 +39,15 @@ install.sunnypilot.ai/fork/TonyBinheWu/hkg-enhanced
 5. 「取消導航」會清除目的地。取消後最遲於下一次 1 Hz 導航更新撤回導航意圖。
 
 地址搜尋採用 Geocoding v6，不包含商家／景點 POI 搜尋。因選定的目的地會保留在裝置上，請求使用 `permanent=true`，帳號須具備永久地理編碼資格；使用者直接輸入座標則不會呼叫地理編碼。路線使用 Directions v5 的 `mapbox/driving`，繁體中文語言碼為 `zh-TW`。沒有即時交通 ETA、語音播報或地圖圖磚功能。
+
+金鑰太長時，可從電腦透過 SSH 連入 comma，在終端機貼上，不必使用裝置鍵盤逐字輸入：
+
+```bash
+cd /data/openpilot
+python3 -c 'from getpass import getpass; from openpilot.common.params import Params; token = getpass("貼上 Mapbox 金鑰後按 Enter：").strip(); assert token.startswith("pk.") and not any(c.isspace() for c in token), "需要完整的 pk. 公開權杖"; Params().put("MapboxToken", token)'
+```
+
+這個命令不含金鑰本身，互動輸入不會回顯。回到 Navigation 開啟 Mapbox 導航即可；不要把私人金鑰寫入程式、GitHub 或 sunnylink 設定檔。
 
 導航成立的定位條件包括：定位有效、資料年齡不超過 2.5 秒、水平誤差不超過 20 公尺、座標及速度為有限值。路段比對限制向前搜尋範圍並檢查行進方向；偏離超過 35 公尺、交叉路段比對歧義或定位中斷會停止提供有效轉彎意圖。連續三次無法比對後重新規劃。網路等待在背景執行，失敗退避，舊目的地的結果不會覆蓋新目的地。
 
@@ -72,13 +81,15 @@ install.sunnypilot.ai/fork/TonyBinheWu/hkg-enhanced
 
 已直接讀取本基底的大小 ONNX 模型；完整輸入名稱、尺寸及 SHA-256 在 [HKG_MODEL_INPUT_AUDIT.json](HKG_MODEL_INPUT_AUDIT.json)。兩者的 `img`／`big_img` 都是 `[1, 12, 128, 256]` 的打包影像張量，並有 desire、traffic convention、action delay 與 recurrent features；沒有導航特徵輸入。
 
+`nav_features` 移植的程式變更、原始 taco2 編碼器與駕駛模型的實際推論結果，以及仍需訓練的部分，見 [HKG_NAV_FEATURES.md](HKG_NAV_FEATURES.md)。新增輸入支援不會讓現有權重自動學會導航。
+
 現有相機轉換仍沿用固定的 512 × 256 模型影像平面。張量大小、來源相機解析度和保留的光學 FOV 是不同問題；把相機影像放大、取消裁切或直接更改模型輸入形狀，都不能建立相容的感知模型。
 
 後續 Full-FOV Shadow Mode 需要能處理完整廣角影像的模型、相應前處理／鏡頭校正及可驗證的輸出規格，才能加入獨立的 `fullFovPerception` 發布、UI／log 與負載／失敗隔離。現階段沒有新增未執行推論的感知程序，也沒有把影像直接接入控制。
 
 ## 驗證紀錄
 
-- 導航、方向燈意圖與 Cap'n Proto 序列化：22 項通過。
+- 導航、方向燈意圖、Cap'n Proto 序列化與導航特徵：30 項通過，包含 8 種實際 CPU JIT 輸入傳遞組合。另已完成 taco2 原始 ONNX 的離線 CPU 推論；結果與限制見 [HKG_NAV_FEATURES.md](HKG_NAV_FEATURES.md)。
 - HKG 控制器、原有低速扭力與 CAN-FD safety：3,341 項通過、548 項跳過；另有 3,748 個子測試通過。跳過項目沿用測試套件的平台條件，不表示通過。
 - 用本次 opendbc 原始碼及基底 Panda 提交編譯 Cortex-M7 韌體，成功產生開發簽章的 `panda_h7.bin.signed`。此檔用於編譯驗證，不隨分支提供預編譯安裝。
 - 新增程式的靜態檢查、sunnylink 設定編譯一致性與差異空白檢查通過。

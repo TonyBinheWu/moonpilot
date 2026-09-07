@@ -1,0 +1,215 @@
+{
+  "taco2_commit": "a8c957e9d98cb3c334ab60c09e731c262605ae56",
+  "encoder_sha256": "f851f19b0a9e2299639f18856e4879ee863918227b7cef6a07eb6b94a273a9aa",
+  "experiment": "offline synthetic raster smoke test; no onroad producer or model weight modification",
+  "encoder_results": {
+    "blank": {
+      "shape": [
+        1,
+        64
+      ],
+      "finite": true,
+      "l2_norm": 0.2682175934314728,
+      "max_abs_delta_from_blank": 0.0
+    },
+    "straight": {
+      "shape": [
+        1,
+        64
+      ],
+      "finite": true,
+      "l2_norm": 0.20386241376399994,
+      "max_abs_delta_from_blank": 0.08038196712732315
+    },
+    "left": {
+      "shape": [
+        1,
+        64
+      ],
+      "finite": true,
+      "l2_norm": 0.32709020376205444,
+      "max_abs_delta_from_blank": 0.061078231781721115
+    },
+    "right": {
+      "shape": [
+        1,
+        64
+      ],
+      "finite": true,
+      "l2_norm": 0.32293447852134705,
+      "max_abs_delta_from_blank": 0.04542522504925728
+    }
+  },
+  "driving_results": [
+    {
+      "file": "supercombo.onnx",
+      "sha256": "f794d65ddfb3600e0b3f7d7e894d1dd278b88569de863aae41246eec43f035cf",
+      "inputs": {
+        "input_imgs": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "big_input_imgs": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "desire": [
+          1,
+          100,
+          8
+        ],
+        "traffic_convention": [
+          1,
+          2
+        ],
+        "driving_style": [
+          1,
+          12
+        ],
+        "nav_features": [
+          1,
+          64
+        ],
+        "features_buffer": [
+          1,
+          99,
+          128
+        ]
+      },
+      "navigation_inputs": [
+        "nav_features"
+      ],
+      "navigation_output_dependencies": {
+        "nav_features": [
+          "outputs"
+        ]
+      },
+      "outputs": {
+        "outputs": [
+          1,
+          6108
+        ]
+      },
+      "note": "輸入尺寸不代表完整光學視野；還必須檢查相機轉換、訓練前處理與感知輸出規格。",
+      "status": "offline_numerical_probe_only",
+      "inference_run": true,
+      "max_abs_output_delta_from_zero_features": {
+        "zero_features": {
+          "outputs": 0.0
+        },
+        "blank": {
+          "outputs": 52.3125
+        },
+        "straight": {
+          "outputs": 51.25
+        },
+        "left": {
+          "outputs": 65.5625
+        },
+        "right": {
+          "outputs": 62.4375
+        }
+      },
+      "note_navigation": "數值差異不證明會導航；目前相機與歷史輸入為零，不能評估實際駕駛表現。"
+    },
+    {
+      "file": "driving_supercombo.onnx",
+      "sha256": "659727c4d4839adc4992a254409a54259a8756a743f2d567bf5fdc6579f8009b",
+      "inputs": {
+        "img": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "big_img": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "features_buffer": [
+          1,
+          24,
+          512
+        ],
+        "desire_pulse": [
+          1,
+          25,
+          8
+        ],
+        "traffic_convention": [
+          1,
+          2
+        ],
+        "action_t": [
+          1,
+          2
+        ]
+      },
+      "navigation_inputs": [],
+      "navigation_output_dependencies": {},
+      "outputs": {
+        "outputs": [
+          1,
+          2576
+        ]
+      },
+      "note": "輸入尺寸不代表完整光學視野；還必須檢查相機轉換、訓練前處理與感知輸出規格。",
+      "status": "unsupported_no_nav_features",
+      "inference_run": false
+    },
+    {
+      "file": "big_driving_supercombo.onnx",
+      "sha256": "1791d5940b2c048d0639813426dd2cf1d6f2a6727ed51e17c8bcea8bbe754123",
+      "inputs": {
+        "img": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "big_img": [
+          1,
+          12,
+          128,
+          256
+        ],
+        "desire_pulse": [
+          1,
+          33,
+          8
+        ],
+        "traffic_convention": [
+          1,
+          2
+        ],
+        "action_t": [
+          1,
+          2
+        ],
+        "features_buffer": [
+          1,
+          32,
+          32,
+          512
+        ]
+      },
+      "navigation_inputs": [],
+      "navigation_output_dependencies": {},
+      "outputs": {
+        "outputs": [
+          1,
+          18452
+        ]
+      },
+      "note": "輸入尺寸不代表完整光學視野；還必須檢查相機轉換、訓練前處理與感知輸出規格。",
+      "status": "unsupported_no_nav_features",
+      "inference_run": false
+    }
+  ]
+}

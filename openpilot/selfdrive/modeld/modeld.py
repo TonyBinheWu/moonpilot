@@ -39,6 +39,7 @@ from openpilot.sunnypilot.livedelay.helpers import get_lat_delay
 from openpilot.sunnypilot.modeld_v2.modeld_base import ModelStateBase
 from openpilot.sunnypilot.selfdrive.controls.lib.relc import RoadEdgeLaneChangeController
 from openpilot.sunnypilot.navd.desire import NavigationTurn
+from openpilot.sunnypilot.navd.model_inputs import copy_nav_features
 
 SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
 
@@ -214,6 +215,7 @@ class ModelState(ModelStateBase):
     self.prev_desire[:] = inputs['desire_pulse']
     self.npy['traffic_convention'][:] = inputs['traffic_convention']
     self.npy['action_t'][:] = inputs['action_t']
+    copy_nav_features(self.npy, inputs)
     self.npy['tfm'][:,:] = transforms['img'][:,:]
     self.npy['big_tfm'][:,:] = transforms['big_img'][:,:]
 

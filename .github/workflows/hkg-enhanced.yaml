@@ -20,13 +20,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Load pinned opendbc
-        run: git submodule update --init opendbc_repo
+      - name: Load pinned opendbc and tinygrad
+        run: git submodule update --init opendbc_repo tinygrad_repo
       - name: Install verification dependencies
-        run: pip install -e ./opendbc_repo pytest cffi ruff
+        run: pip install -e ./opendbc_repo -e ./tinygrad_repo pytest cffi ruff onnx zstandard
       - name: Navigation, signal intent and schemas
         env:
           PYTHONPATH: ${{ github.workspace }}
+          DEV: CPU
         run: python -m unittest discover -s openpilot/sunnypilot/navd/tests -v
       - name: HKG controller and CAN-FD safety regression
         run: python -m pytest -q opendbc_repo/opendbc/safety/tests/test_hyundai_canfd.py opendbc_repo/opendbc/safety/tests/test_hyundai_canfd_blinkers.py opendbc_repo/opendbc/sunnypilot/car/hyundai/tests

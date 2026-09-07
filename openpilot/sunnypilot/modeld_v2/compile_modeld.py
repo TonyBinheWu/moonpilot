@@ -13,6 +13,7 @@ import tempfile
 import time
 from functools import partial
 from openpilot.selfdrive.modeld.helpers import dump_oob, load_oob
+from openpilot.sunnypilot.navd.model_inputs import nav_input_shapes
 import numpy as np
 os.environ['GMMU'] = '0'
 
@@ -61,6 +62,7 @@ def derive_frame_skip(vision_input_shapes: dict, policy_input_shapes: dict) -> i
 
 
 def get_policy_npy_shapes(input_shapes: dict, is_supercombo: bool = False) -> tuple[dict, list[int]]:
+  nav_input_shapes(input_shapes)  # reject incompatible feature widths at compile/load time
   desire_key = _detect_desire_key(input_shapes)
   shapes = {}
   if desire_key:

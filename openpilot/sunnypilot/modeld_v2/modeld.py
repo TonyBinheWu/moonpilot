@@ -36,6 +36,7 @@ from openpilot.system import sentry
 from openpilot.system.camerad.cameras.nv12_info import get_nv12_info
 from openpilot.selfdrive.controls.lib.desire_helper import DesireHelper
 from openpilot.sunnypilot.navd.desire import NavigationTurn
+from openpilot.sunnypilot.navd.model_inputs import copy_nav_features
 from openpilot.selfdrive.controls.lib.drive_helpers import get_accel_from_plan, smooth_value
 from openpilot.selfdrive.modeld.modeld import ChestnutState
 
@@ -223,6 +224,7 @@ class ModelState(ModelStateBase):
     inputs[desire_key][0] = 0
     self.numpy_inputs[desire_key][:] = np.where(inputs[desire_key] - self.prev_desire > .99, inputs[desire_key], 0)
     self.prev_desire[:] = inputs[desire_key]
+    copy_nav_features(self.numpy_inputs, inputs)
     for key in ('traffic_convention', 'lateral_control_params', 'action_t'):
       if key in self.numpy_inputs and key in inputs:
         self.numpy_inputs[key][:] = inputs[key]
