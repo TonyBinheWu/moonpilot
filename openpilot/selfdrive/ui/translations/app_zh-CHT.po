@@ -1199,3 +1199,207 @@ msgstr "已辨識為 Kia EV6，開啟後套用 EV6 扭力曲線。"
 #: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
 msgid "Compatible HKG vehicle detected. This switch is available, but the EV6 torque profile does not apply."
 msgstr "已辨識為相容 HKG 車型，開關可用；此車型不套用 EV6 扭力曲線。"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Route planning failed. Check the routing service and network."
+msgstr "路線規劃失敗，請檢查 Mapbox 權杖與網路"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Set a Mapbox public token (pk.)."
+msgstr "請設定 Mapbox 公開權杖（pk.）"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Waiting for a reliable GPS fix"
+msgstr "等待可靠的 GPS 定位"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "You have arrived"
+msgstr "已抵達目的地"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Planning route"
+msgstr "正在規劃路線"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Unable to match the current road. Replanning route."
+msgstr "無法確認目前路段，準備重新規劃"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Mapbox response is too large"
+msgstr "Mapbox 回應過大"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Invalid Mapbox token or permissions"
+msgstr "Mapbox 權杖或權限錯誤"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Mapbox rate limit reached. Try again later."
+msgstr "Mapbox 請求受限，稍後重試"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Mapbox routing is temporarily unavailable"
+msgstr "Mapbox 暫時無法規劃路線"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Unable to reach Mapbox. Check your network."
+msgstr "無法取得 Mapbox 資料，請檢查網路"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Incomplete address search response"
+msgstr "地址搜尋回應不完整"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "No complete driving route found"
+msgstr "找不到完整的可行駛路線"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Coordinates must be longitude, latitude"
+msgstr "座標必須是經度、緯度"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Coordinates are out of range"
+msgstr "座標範圍錯誤"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "No route found"
+msgstr "找不到可用路線"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Route is missing step geometry"
+msgstr "路線缺少路段幾何"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Route steps are discontinuous"
+msgstr "路段不連續"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Route is too long"
+msgstr "路線過長"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Route data is incomplete"
+msgstr "路線資料不完整"
+
+#: sunnypilot/navd/navigationd.py sunnypilot/navd/mapbox.py
+msgid "Invalid route duration"
+msgstr "路程時間錯誤"
+
+msgid "Search for an address and confirm the destination, or enter latitude, longitude."
+msgstr "搜尋地址並確認目的地，或輸入緯度、經度。"
+
+msgid "Show directions, remaining distance and arrival time. Route planning needs a network connection."
+msgstr "顯示路線指示、剩餘距離與預計抵達時間。路線規劃需要網路連線。"
+
+msgid "Use OpenStreetMap routes (OSRM)"
+msgstr "使用 OpenStreetMap 路線（OSRM）"
+
+msgid "Use OSM routes without a Mapbox token. Enter destination coordinates, or use Mapbox for address search. Your location and destination are sent to the selected routing server."
+msgstr "不需要 Mapbox 權杖即可使用 OSM 路線。請輸入目的地座標，或使用 Mapbox 搜尋地址。您的位置與目的地會傳送至所選的路線伺服器。"
+
+msgid "OSRM routing server"
+msgstr "OSRM 路線伺服器"
+
+msgid "The default is a public demonstration server. For regular use, configure your own HTTPS OSRM endpoint. Map data: OpenStreetMap contributors. Report map errors at https://www.openstreetmap.org."
+msgstr "預設使用公開示範伺服器。長期使用請設定自己的 HTTPS OSRM 伺服器。地圖資料由 OpenStreetMap 貢獻者提供，地圖錯誤可至 https://www.openstreetmap.org 回報。"
+
+msgid "Mapbox public token"
+msgstr "Mapbox 公開權杖"
+
+msgid "Use your own pk. token. Tokens are excluded from drive logs and sunnylink backups."
+msgstr "請使用自己的 pk. 權杖。權杖不會納入行車紀錄及 sunnylink 備份。"
+
+msgid "Driver-confirmed navigation turns"
+msgstr "駕駛確認的導航轉彎"
+
+msgid "Near a normal left or right turn below 28.8 km/h, check the road and nudge the wheel toward the turn. This supplies the existing turn-intent input to either driving model. Disable MADS, Lane Turn Desire and Pause Lateral Control with Blinker first. Ramps, U-turns and automatic lane changes are not supported. The route does not determine right of way or provide a learned map input."
+msgstr "車速低於 28.8 km/h 且接近一般左轉或右轉時，請先確認路況，再向轉彎方向輕推方向盤。此功能將轉彎意圖傳入任一駕駛模型既有的輸入。請先關閉 MADS、車道轉彎意圖與方向燈暫停橫向控制。不支援匝道、迴轉與自動變換車道。路線不會判斷路權，也不是經訓練的地圖特徵輸入。"
+
+msgid "A compatible full wide-angle perception model is not available."
+msgstr "目前沒有相容的完整廣角感知模型。"
+
+msgid "Cancel navigation"
+msgstr "取消導航"
+
+msgid "Routing server updated"
+msgstr "路線伺服器已更新"
+
+msgid "Token updated"
+msgstr "權杖已更新"
+
+msgid "Token cleared"
+msgstr "權杖已清除"
+
+msgid "Only Mapbox public tokens (pk.) are accepted."
+msgstr "僅接受 Mapbox 公開權杖（pk.）。"
+
+msgid "Check the coordinates, then select the destination."
+msgstr "請核對座標，再選擇目的地。"
+
+msgid "Enter latitude, longitude. Address search requires a Mapbox token."
+msgstr "請輸入緯度、經度。搜尋地址需要 Mapbox 權杖。"
+
+msgid "Searching for an address..."
+msgstr "正在搜尋地址…"
+
+msgid "Address or latitude, longitude"
+msgstr "地址或緯度、經度"
+
+msgid "For example: 25.0330, 121.5654. Address search does not include businesses or points of interest."
+msgstr "例如：25.0330, 121.5654。地址搜尋不包含商家或興趣點。"
+
+msgid "Destination: {name}. Routing starts when a reliable position is available."
+msgstr "目的地：{name}。取得可靠定位後開始規劃路線。"
+
+msgid "Navigation cancelled"
+msgstr "導航已取消"
+
+msgid "Check and select the destination."
+msgstr "請核對並選擇目的地。"
+
+msgid "No address found. Enter latitude, longitude instead."
+msgstr "找不到地址，請改用緯度、經度。"
+
+msgid "Address search failed"
+msgstr "地址搜尋失敗"
+
+msgid "Destination: {name}"
+msgstr "目的地：{name}"
+
+msgid "Turn left"
+msgstr "左轉"
+
+msgid "Turn right"
+msgstr "右轉"
+
+msgid "Follow the route"
+msgstr "請依路線行駛"
+
+msgid "{distance:.1f} km remaining | About {minutes} min"
+msgstr "剩餘 {distance:.1f} 公里 | 約 {minutes} 分鐘"
+
+msgid "Check the road, then nudge the wheel toward the turn"
+msgstr "確認路況後，向轉彎方向輕推方向盤"
+
+msgid "HKG model turn signals (experimental)"
+msgstr "HKG 模型方向燈（實驗性）"
+
+msgid "Keep disabled while the reported CAN fault is being investigated. Driver signals and hazard lights take priority."
+msgstr "回報的 CAN 故障尚在調查中，請保持關閉。駕駛操作的方向燈與警示燈優先。"
+
+msgid "Unavailable: the previous 310-unit profile exceeded the official 270-unit CAN-FD steering limit. EV6 and other CAN-FD vehicles now retain the official limit at every speed."
+msgstr "此功能暫不可用：原本的 310 指令上限超出官方 CAN-FD 的 270 限制。EV6 與其他 CAN-FD 車型目前在所有車速均保留官方上限。"
+
+msgid "Navigation"
+msgstr "導航"
+
+msgid "Destination"
+msgstr "目的地"
+
+msgid "Set"
+msgstr "設定"
+
+msgid "Enter"
+msgstr "輸入"
+
+msgid "Unavailable"
+msgstr "暫不可用"

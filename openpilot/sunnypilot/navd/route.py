@@ -12,10 +12,10 @@ EARTH_RADIUS = 6371000.0
 
 def coordinate(value):
   if not isinstance(value, (list, tuple)) or len(value) != 2:
-    raise ValueError("座標必須是經度、緯度")
+    raise ValueError("Coordinates must be longitude, latitude")
   lon, lat = map(float, value)
   if not (math.isfinite(lon) and math.isfinite(lat) and -180 <= lon <= 180 and -85 <= lat <= 85):
-    raise ValueError("座標範圍錯誤")
+    raise ValueError("Coordinates are out of range")
   return lon, lat
 
 
@@ -40,7 +40,7 @@ class Step:
 class Route:
   def __init__(self, data):
     if not isinstance(data, dict) or data.get("code") != "Ok" or not data.get("routes"):
-      raise ValueError("找不到可用路線")
+      raise ValueError("No route found")
     raw = data["routes"][0]
     self.points = []
     self.cumulative = []
@@ -49,9 +49,9 @@ class Route:
       for step in leg["steps"]:
         points = [coordinate(p) for p in step["geometry"]["coordinates"]]
         if not points:
-          raise ValueError("路線缺少路段幾何")
+          raise ValueError("Route is missing step geometry")
         if self.points and distance(points[0], self.points[-1]) > 5:
-          raise ValueError("路段不連續")
+          raise ValueError("Route steps are discontinuous")
         start = self.cumulative[-1] if self.cumulative else 0.0
         m = step["maneuver"]
         self.steps.append(Step(start, str(m["type"]), str(m.get("modifier", "")), str(m.get("instruction", ""))[:240]))
@@ -62,12 +62,12 @@ class Route:
           self.points.append(point)
           self.cumulative.append((self.cumulative[-1] if self.cumulative else 0.0) + delta)
           if len(self.points) > 100000:
-            raise ValueError("路線過長")
+            raise ValueError("Route is too long")
     if len(self.points) < 2 or not self.steps or self.steps[-1].kind != "arrive":
-      raise ValueError("路線資料不完整")
+      raise ValueError("Route data is incomplete")
     self.duration = float(raw["duration"])
     if not math.isfinite(self.duration) or self.duration < 0:
-      raise ValueError("路程時間錯誤")
+      raise ValueError("Invalid route duration")
     self.progress = 0.0
     self.last_time = None
     self.step_starts = [s.start for s in self.steps]

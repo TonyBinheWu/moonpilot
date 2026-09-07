@@ -481,6 +481,7 @@ struct NavigationStateSP @0xcb9fd56c7057593a {
   maneuverDistance @6 :Float32;
   distanceRemaining @7 :Float32;
   timeRemaining @8 :Float32;
+  provider @9 :Text;
 
   enum Status {
     off @0;

@@ -32,11 +32,12 @@ class NavigationTurn:
     opposite_signal = cs.rightBlinker if left else cs.leftBlinker
     blindspot = cs.leftBlindspot if left else cs.rightBlindspot
     opposite_torque = cs.steeringPressed and (cs.steeringTorque < 0 if left else cs.steeringTorque > 0)
+    cancel_pressed = any(button.type == "cancel" and button.pressed for button in getattr(cs, 'buttonEvents', ()))
     allowed = (enabled and fresh and lateral_active and nav.status == "active" and bool(nav.routeId) and
                nav.maneuverType == "turn" and nav.modifier in ("left", "right") and
                math.isfinite(nav.maneuverDistance) and math.isfinite(cs.vEgo) and math.isfinite(cs.steeringTorque) and
                0.3 < cs.vEgo < 8.0 and 0 <= nav.maneuverDistance <= min(30.0, max(8.0, cs.vEgo * 3.0)) and
-               cs.canValid and not (cs.brakePressed or cs.gasPressed or cs.steerFaultTemporary or cs.steerFaultPermanent) and
+               cs.canValid and not (cancel_pressed or cs.brakePressed or cs.gasPressed or cs.steerFaultTemporary or cs.steerFaultPermanent) and
                not (opposite_signal or blindspot or opposite_torque or lane_change_active) and existing_desire == 0)
     if not allowed:
       self.until = 0.0

@@ -5,13 +5,12 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 from opendbc.car.structs import car
-from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque, supports_ev6_torque_profile
 from opendbc.sunnypilot.car.hyundai.blinkers import supports_model_blinkers
 from enum import IntEnum
 
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.multilang import tr
-from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, simple_button_item_sp, option_item_sp, LineSeparatorSP
+from openpilot.system.ui.sunnypilot.widgets.list_view import toggle_item_sp, simple_button_item_sp, button_item_sp, option_item_sp, LineSeparatorSP
 from openpilot.system.ui.widgets.scroller_tici import Scroller
 from openpilot.system.ui.widgets import Widget
 from openpilot.selfdrive.ui.sunnypilot.layouts.settings.steering_sub_layouts.lane_change_settings import LaneChangeSettingsLayout
@@ -93,9 +92,9 @@ class SteeringLayout(Widget):
       button_width=850,
       callback=lambda: self._set_current_panel(PanelType.TORQUE_CONTROL)
     )
-    self._hkg_low_speed_torque_toggle = toggle_item_sp(
-      param="HkgLowSpeedTorque",
+    self._hkg_low_speed_torque_toggle = button_item_sp(
       title=lambda: tr("HKG Low-Speed Steering Torque (Experimental)"),
+      button_text=lambda: tr("Unavailable"),
       description=self._hkg_low_speed_torque_description,
     )
     self._nnlc_toggle = toggle_item_sp(
@@ -104,10 +103,8 @@ class SteeringLayout(Widget):
       description=""
     )
     self._hkg_model_blinkers = toggle_item_sp(
-      param="HkgModelBlinkers", title="HKG 模型方向燈（實驗功能）",
-      description=lambda: ("符合 CAN-FD／HDA2 架構。" if supports_model_blinkers(ui_state.CP) else "目前車型未確認支援 CAN-FD／HDA2 方向燈控制。") +
-                           "預設關閉，只能於非行車狀態設定，下次行車生效。模型已接受的變換車道或轉彎意圖可觸發方向燈。" +
-                           "駕駛反向操作或警示燈優先；需實車驗證。")
+      param="HkgModelBlinkers", title=lambda: tr("HKG model turn signals (experimental)"),
+      description=lambda: tr("Keep disabled while the reported CAN fault is being investigated. Driver signals and hazard lights take priority."))
 
     items = [
       self._mads_toggle,
@@ -133,16 +130,8 @@ class SteeringLayout(Widget):
 
   @staticmethod
   def _hkg_low_speed_torque_description():
-    description = tr("Default: off. Set offroad; applies next drive. Only EV6 uses the experimental 310-to-270 profile. Other vehicles retain stock limits.")
-    if ui_state.CP is None:
-      status = tr("Start the vehicle to check vehicle compatibility.")
-    elif not supports_low_speed_torque(ui_state.CP):
-      status = tr("Unavailable for this vehicle. Requires compatible HKG CAN-FD torque steering.")
-    elif supports_ev6_torque_profile(ui_state.CP):
-      status = tr("Kia EV6 detected. The EV6 torque profile applies when enabled.")
-    else:
-      status = tr("Compatible HKG vehicle detected. This switch is available, but the EV6 torque profile does not apply.")
-    return f"<b>{status}</b><br><br>{description}"
+    return tr("Unavailable: the previous 310-unit profile exceeded the official 270-unit CAN-FD steering limit. " +
+              "EV6 and other CAN-FD vehicles now retain the official limit at every speed.")
 
   def _update_state(self):
     super()._update_state()
@@ -170,7 +159,7 @@ class SteeringLayout(Widget):
     self._nnlc_toggle.action_item.set_enabled(ui_state.is_offroad() and torque_allowed and not enforce_torque_enabled and not jerk_aware_enabled)
     self._torque_control_toggle.action_item.set_enabled(ui_state.is_offroad() and torque_allowed and not nnlc_enabled)
     self._torque_customization_button.action_item.set_enabled(self._torque_control_toggle.action_item.get_state())
-    self._hkg_low_speed_torque_toggle.action_item.set_enabled(ui_state.is_offroad() and supports_low_speed_torque(ui_state.CP))
+    self._hkg_low_speed_torque_toggle.action_item.set_enabled(False)
     self._hkg_model_blinkers.action_item.set_enabled(ui_state.is_offroad() and supports_model_blinkers(ui_state.CP))
 
   def _render(self, rect):

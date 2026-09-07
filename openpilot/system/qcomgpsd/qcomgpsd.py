@@ -5,6 +5,7 @@ import sys
 import signal
 import itertools
 import math
+from openpilot.system.qcomgpsd.accuracy import horizontal_accuracy
 import time
 import datetime
 from typing import NoReturn
@@ -307,6 +308,7 @@ def main() -> NoReturn:
       gps.unixTimestampMillis = dt_timestamp.timestamp()*1e3
       gps.source = log.GpsLocationData.SensorSource.qcomdiag
       gps.vNED = vNED
+      gps.horizontalAccuracy = horizontal_accuracy(report)
       gps.verticalAccuracy = report["q_FltVdop"]
       gps.bearingAccuracyDeg = report["q_FltHeadingUncRad"] * 180/math.pi if (report["q_FltHeadingUncRad"] != 0) else 180
       gps.speedAccuracy = math.sqrt(sum([x**2 for x in vNEDsigma]))

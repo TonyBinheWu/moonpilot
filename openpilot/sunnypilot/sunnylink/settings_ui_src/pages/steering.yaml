@@ -233,13 +233,13 @@ sections:
       - $ref: '#/macros/offroad'
 - id: hkg_low_speed_torque
   title: HKG Low-Speed Steering Torque
-  description: HKG switch eligibility with a separate Kia EV6 torque profile
+  description: Retired experimental HKG steering torque profile
   items:
   - key: HkgLowSpeedTorque
     widget: toggle
     title: HKG Low-Speed Steering Torque (Experimental)
-    description: Defaults to off. Compatible HKG CAN-FD vehicles can enable this switch while offroad. On the next drive, only Kia EV6 uses the experimental 310-to-270 torque profile; other vehicles retain stock limits.
-    details: Switch eligibility and vehicle-specific torque limits are separate checks. The EV6 platform identifier does not distinguish Air LR or model year. The profile is experimental, not a verified factory maximum. Traditional CAN, angle steering and vehicles with alternate torque limits are unsupported.
+    description: Unavailable. The previous 310-unit profile was not validated for EV6. CAN-FD vehicles retain the 270-unit limit at every speed.
+    details: The stored toggle is retained for compatibility but cannot increase steering authority. Rivian torque values do not establish HKG actuator limits.
     enablement:
     - $ref: '#/macros/offroad'
     - type: capability

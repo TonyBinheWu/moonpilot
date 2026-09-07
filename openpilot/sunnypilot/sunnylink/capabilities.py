@@ -10,7 +10,6 @@ from openpilot.cereal import custom, messaging
 from opendbc.car.structs import car
 from opendbc.car.hyundai.values import CAR as HYUNDAI_CAR, UNSUPPORTED_LONGITUDINAL_CAR
 from opendbc.car.subaru.values import CAR as SUBARU_CAR, SubaruFlags
-from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque
 from opendbc.sunnypilot.car.hyundai.blinkers import supports_model_blinkers
 from opendbc.sunnypilot.car.tesla.values import TeslaFlagsSP
 from openpilot.common.params import Params
@@ -54,7 +53,7 @@ CAPABILITY_LABELS: dict[str, str] = {
   "has_icbm": "ICBM enabled",
   "icbm_available": "ICBM available",
   "torque_allowed": "torque steering (not available for angle steering vehicles)",
-  "hkg_low_speed_torque_available": "compatible HKG CAN-FD torque steering",
+  "hkg_low_speed_torque_available": "retired unvalidated HKG torque profile (unavailable)",
   "hkg_model_blinkers_available": "compatible HKG CAN-FD LKA/HDA2 blinker control",
   "brand": "Vehicle brand",
   "pcm_cruise": "PCM cruise",
@@ -162,7 +161,7 @@ def generate_capabilities(params: Params | None = None) -> dict:
       # which is a separate concept and is not interchangeable.
       caps["steer_control_type"] = str(CP.steerControlType)
       caps["torque_allowed"] = CP.steerControlType != car.CarParams.SteerControlType.angle
-      caps["hkg_low_speed_torque_available"] = supports_low_speed_torque(CP)
+      caps["hkg_low_speed_torque_available"] = False
       caps["hkg_model_blinkers_available"] = supports_model_blinkers(CP)
       if not caps["brand"] and CP.brand:
         caps["brand"] = str(CP.brand)

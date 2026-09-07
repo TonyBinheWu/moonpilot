@@ -207,9 +207,10 @@ class InputBox(Widget):
         self._last_key_pressed = 0
 
     # Handle text input
-    char = rl.get_char_pressed()
-    if char != 0 and char >= 32:  # Filter out control characters
-      self.add_char_at_cursor(chr(char))
+    # Drain the character queue so paste and IME commits appear in one frame.
+    while (char := rl.get_char_pressed()) != 0:
+      if char >= 32 and char != 127:
+        self.add_char_at_cursor(chr(char))
 
   def _process_key(self, key):
     if key == rl.KEY_LEFT:

@@ -1,13 +1,14 @@
 # HKG Enhanced：Mapbox 導航與模型方向燈實驗分支
 
 基底：`TonyBinheWu/sunnypilot` 的 `deafa7dff672a89cc7e4b0fabdd71bec695fa3b9`。
-分支：`hkg-enhanced`。HKG 低速扭力保留原開關資格，新增第二道 EV6 專屬曲線門檻；Chestnut 載入與小模型 fallback 延續基底。
+本次審查分支：`hkg-ui-osm-review`，基於 `hkg-enhanced` 的 `b623e3a`。新增 OSM 路線及原生 UI 網頁預覽，修正混合語系字形；移除未驗證的 EV6 310 曲線並保留 CAN-FD 270 上限。Chestnut 載入與小模型 fallback 延續基底。
 
 ## 本版完成範圍
 
 | 項目 | 狀態 |
 | --- | --- |
-| Mapbox 地址搜尋、座標目的地、路線規劃 | 已實作；使用自有 Mapbox 公開權杖 |
+| Mapbox／OSRM 路線規劃、地址搜尋與座標目的地 | 已實作；OSRM 座標路線不需要 Mapbox 權杖，地址搜尋仍使用自有 Mapbox 公開權杖 |
+| 開發網頁預覽 | 已實作真實設定 UI 的本機預覽，可點選、捲動、貼上及重新載入；不模擬行車 |
 | 逐向提示、剩餘距離、估計時間、取消與重新規劃 | 已實作，畫面為文字導航橫幅；尚無地圖圖磚與路線圖 |
 | 導航轉彎意圖送入大小模型 | 已接入兩個模型執行流程的既有 `turnLeft`／`turnRight` desire 輸入；預設關閉，每個轉彎需駕駛輕推方向盤確認 |
 | HKG 模型方向燈開關 | 已實作於 Steering 與 sunnylink；預設關閉；限制 CAN-FD LKA／HDA2 架構 |
@@ -16,24 +17,16 @@
 
 這是第一階段原始碼實驗版，不是可依目的地自行完成全程行駛的版本。
 
-## 安裝
+## 開發與預覽
 
-在 comma 的自訂軟體安裝畫面輸入：
-
-```text
-install.sunnypilot.ai/fork/TonyBinheWu/hkg-enhanced
-```
-
-只寫 `/hkg-enhanced` 不會指定 TonyBinheWu 的 fork。本分支交付原始碼，裝置沿用既有下載子模組、模型與 SCons 編譯流程；沒有新增 `prebuilt`。
-
-安裝器已以 `AGNOSSetup` 請求核對：HTTP 200、ARM64 ELF 回應，內容包含正確儲存庫與分支名稱。這不等於完成裝置安裝、開機或實車驗證。
+本次先以獨立開發分支交付。請依 [網頁預覽說明](../tools/ui_preview/README.md) 在電腦啟動 UI；OSM 功能與模型輸入限制見 [OSM_NAVIGATION.md](OSM_NAVIGATION.md)。未完成 firmware/AGNOS、HIL 或實車驗證，不作為已驗證的裝置發布版本。
 
 此版新增設定頁與導航橫幅接在 comma 3／3X 使用的 tici UI。**comma four 的 mici UI 尚未移植本次導航頁與橫幅**；共用模型和車輛層的變更不代表已有 four 的完整操作介面。
 
 ## 操作
 
-1. 在非行車模式進入 **Settings → Navigation**，開啟「Mapbox 導航」。
-2. 設定自己的 `pk.` 公開權杖。權杖使用 `DONT_LOG`，不加入 sunnylink 備份。
+1. 在非行車模式進入 **Settings → Navigation**，開啟「Navigation」。
+2. 選擇 Mapbox 或 OSRM 路線；Mapbox 路線及地址搜尋需要自己的 `pk.` 公開權杖。權杖使用 `DONT_LOG`，不加入 sunnylink 備份。
 3. 輸入地址，核對搜尋結果後按「選取」；或輸入 **緯度、經度**，例如 `25.0330, 121.5654`，核對後選取。
 4. 車輛啟動且取得可靠 GPS 後，背景工作程序規劃路線，行車畫面顯示逐向指示。
 5. 「取消導航」會清除目的地。取消後最遲於下一次 1 Hz 導航更新撤回導航意圖。
@@ -53,17 +46,17 @@ python3 -c 'from getpass import getpass; from openpilot.common.params import Par
 
 ## 導航轉彎提示模型
 
-「導航轉彎提示模型（需駕駛確認）」預設關閉。啟用前須關閉 `LaneTurnDesire` 與 `BlinkerPauseLateralControl`，避免系統控制的方向燈回傳後又觸發另一套轉彎邏輯，或讓方向燈暫停橫向控制。
+「導航轉彎提示模型（需駕駛確認）」預設關閉。啟用前須關閉 `Mads`、`LaneTurnDesire` 與 `BlinkerPauseLateralControl`，避免系統控制的方向燈回傳後又觸發另一套轉彎邏輯，或讓方向燈暫停橫向控制。
 
 只處理一般 `turn + left/right`：速度必須大於 0.3 m/s、低於 8 m/s（28.8 km/h），距離須在 `min(30, max(8, vEgo × 3))` 公尺內，橫向控制已啟用，模型校準與車輛資料有效。駕駛必須在該轉彎提示出現後，向同方向重新輕推方向盤；持續握有扭力、導航自行換路線、舊轉彎完成都不算新的確認。
 
-煞車、油門、反向操作、警示燈、目標側盲點、變換車道中、資料過期或控制退出時不再輸出導航意圖。同一路線的同一個轉彎只接受一次，意圖最多維持八秒。模型 fallback 會撤回本次意圖，不能自行對小模型重新發出一次。
+煞車、油門、取消鍵、反向操作、警示燈、目標側盲點、變換車道中、資料過期或控制退出時不再輸出導航意圖。同一路線的同一個轉彎只接受一次，意圖最多維持八秒。模型 fallback 會撤回本次意圖，不能自行對小模型重新發出一次。
 
 模型把 desire 的上升沿視為提示，並依自己的輸出決定動作。**撤回 desire 不是保證立即停止轉彎的指令**；必要時須由駕駛接管。地圖資料不提供路權、紅綠燈或交叉來車的安全確認，也不判斷這個轉彎是否真的可完成。沒有加入匝道、自動變換車道、迴轉或導航直接控制曲率與加減速。
 
 ## HKG 模型方向燈
 
-在 **Settings → Steering → HKG 模型方向燈（實驗功能）** 開啟，非行車模式設定，下次行車初始化生效。sunnylink 使用相同車型能力判斷。
+已回報啟用後的 CAN 故障，調查期間請保持方向燈實驗功能關閉。原功能位於 **Settings → Steering → HKG 模型方向燈（實驗功能）**，非行車模式設定，下次行車初始化生效。sunnylink 使用相同車型能力判斷。
 
 `taco2` 在 EV6 的平台設定直接加入 `ENABLE_BLINKERS`。本分支採用現代名稱 `CANFD_ENABLE_BLINKERS`，在建立 CarController 前同步設定車輛旗標與 Panda 的 `CANFD_ENABLE_BLINKERS` safetyParam（2048）。條件為已收錄的 HKG CAN-FD 平台、辨識為 `CANFD_LKA_STEER_MSG`、非 dashcamOnly，且使用 `hyundaiCanfd` safety 模式；不是對所有 HKG 年式與配備無條件啟用。
 
@@ -75,7 +68,7 @@ python3 -c 'from getpass import getpass; from openpilot.common.params import Par
 - 只對已開始的變換車道或已確認的導航轉彎輸出燈號；資料有效、車輛 CAN 正常、橫向控制啟用才允許。駕駛反向操作、警示燈及目標側盲點會取消系統燈號請求。
 - Panda 只在專用旗標及 LKA 架構成立時接受這三種訊息；SPAS 除 CRC／counter／方向燈欄位外必須為零。方向燈只允許 0／3／4（取消／左／右），未啟用控制時只允許取消；0x7B1 僅允許 tester-present，不能發出其他診斷或停車動作。
 
-方向燈功能不更改轉向扭力、加速度與煞車的既有檢查；低速扭力的 HKG 開關資格與 EV6 曲線門檻另見 [EV6_LOW_SPEED_TORQUE.md](EV6_LOW_SPEED_TORQUE.md)。
+方向燈功能不更改轉向扭力、加速度與煞車的既有檢查；先前低速扭力曲線的停用與安全邊界另見 [EV6_LOW_SPEED_TORQUE.md](EV6_LOW_SPEED_TORQUE.md)。
 
 ## Full-FOV 與導航模型的缺口
 

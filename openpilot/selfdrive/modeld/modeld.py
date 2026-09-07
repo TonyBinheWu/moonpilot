@@ -356,7 +356,7 @@ def main(demo=False):
 
   DH = DesireHelper()
   nav_turn = NavigationTurn()
-  nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+  nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("Mads") and not params.get_bool("LaneTurnDesire") and
                       not params.get_bool("BlinkerPauseLateralControl"))
   RELC = RoadEdgeLaneChangeController()
 
@@ -395,7 +395,7 @@ def main(demo=False):
 
     sm.update(0)
     if run_count % 20 == 0:
-      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("Mads") and not params.get_bool("LaneTurnDesire") and
                           not params.get_bool("BlinkerPauseLateralControl"))
     desire = DH.desire
     now = time.monotonic()

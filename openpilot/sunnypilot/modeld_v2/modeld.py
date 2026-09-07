@@ -447,7 +447,7 @@ def main(demo=False):
 
     sm.update(0)
     if run_count % 20 == 0:
-      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("LaneTurnDesire") and
+      nav_turn_enabled = (params.get_bool("NavTurnConfirmation") and not params.get_bool("Mads") and not params.get_bool("LaneTurnDesire") and
                           not params.get_bool("BlinkerPauseLateralControl"))
     desire = DH.desire
     now = time.monotonic()
@@ -547,6 +547,7 @@ def main(demo=False):
                      publish_state, meta_main.frame_id, meta_extra.frame_id, frame_id,
                      frame_drop_ratio, meta_main.timestamp_eof, model_execution_time, live_calib_seen, meta_constants)
       modelv2_send.modelV2.big = model.chestnut
+      drivingdata_send.drivingModelData.big = model.chestnut
       mdv2sp_send.valid = modelv2_send.valid
 
       desire_state = modelv2_send.modelV2.meta.desireState

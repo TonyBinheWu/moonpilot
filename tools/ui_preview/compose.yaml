@@ -1,0 +1,13 @@
+services:
+  ui-preview:
+    platform: linux/amd64
+    build:
+      context: ../..
+      dockerfile: tools/ui_preview/Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    shm_size: 1gb
+    volumes:
+      - ../../openpilot/selfdrive/ui:/src/openpilot/openpilot/selfdrive/ui:ro
+      - ../../openpilot/system/ui:/src/openpilot/openpilot/system/ui:ro
+      - ./web:/src/openpilot/tools/ui_preview/web:ro

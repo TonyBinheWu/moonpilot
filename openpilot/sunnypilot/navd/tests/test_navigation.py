@@ -71,9 +71,14 @@ class TestClient(unittest.TestCase):
     url = opener.call_args.args[0]
     query = parse_qs(urlparse(url).query)
     self.assertIn('121.0,25.0;121.001,25.001', url)
-    self.assertEqual(query['language'], ['zh-TW'])
+    self.assertEqual(query['language'], ['en'])
     self.assertEqual(query['bearings'], ['90,90;'])
     self.assertEqual(opener.call_args.kwargs['timeout'], 8)
+
+  def test_requested_language(self):
+    opener = Mock(return_value=io.BytesIO(json.dumps(route_data()).encode()))
+    MapboxClient('pk.TEST', opener, language='zh-CHT').route([121, 25], [121.001, 25.001])
+    self.assertEqual(parse_qs(urlparse(opener.call_args.args[0]).query)['language'], ['zh-TW'])
 
   def test_error_redacts_token(self):
     for error in [HTTPError('https://example/?access_token=SECRET', 401, 'SECRET', {}, None), URLError('SECRET'), ValueError('SECRET')]:
@@ -185,7 +190,8 @@ class TestNavigationTurn(unittest.TestCase):
 
   def test_cancel_and_no_resume_on_stale_pedals_manual_or_conflict(self):
     for field, value in [('brakePressed', True), ('gasPressed', True), ('rightBlinker', True), ('leftBlindspot', True),
-                         ('steeringTorque', -1), ('vEgo', 15), ('canValid', False), ('steerFaultTemporary', True)]:
+                         ('steeringTorque', -1), ('vEgo', 15), ('canValid', False), ('steerFaultTemporary', True),
+                         ('buttonEvents', [SimpleNamespace(type='cancel', pressed=True)])]:
       self.setUp()
       self.assertEqual(self.confirm(), 1)
       setattr(self.cs, field, value)

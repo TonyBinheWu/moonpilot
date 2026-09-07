@@ -12,7 +12,7 @@ import platform
 import subprocess
 from contextlib import contextmanager
 from collections.abc import Callable
-from collections import deque
+from collections import deque, OrderedDict
 from enum import IntEnum, StrEnum
 from pathlib import Path
 from typing import NamedTuple
@@ -130,11 +130,9 @@ class TextAlignmentVertical(IntEnum):
   BOTTOM = 2
 
 
-def font_fallback(font: rl.Font) -> rl.Font:
-  """Use a Noto fallback for languages not covered by Inter."""
-  if multilang.requires_font_fallback():
-    return gui_app.fallback_font()
-  return font
+def font_fallback(font: rl.Font, text: str = "") -> rl.Font:
+  """Resolve the actual text, including road names in an English interface."""
+  return gui_app.font_for_text(font, text) if text else font
 
 
 class MousePos(NamedTuple):
@@ -222,6 +220,8 @@ class GuiApplication(GuiApplicationExt):
 
     self._fonts: dict[FontWeight, rl.Font] = {}
     self._fallback_fonts: dict[str, rl.Font] = {}
+    self._text_fonts: OrderedDict[frozenset[int], rl.Font] = OrderedDict()
+    self._font_codepoints: dict[int, frozenset[int]] = {}
     self._width = width if width is not None else GuiApplication._default_width()
     self._height = height if height is not None else GuiApplication._default_height()
 
@@ -581,6 +581,10 @@ class GuiApplication(GuiApplicationExt):
     for font in self._fallback_fonts.values():
       rl.unload_font(font)
     self._fallback_fonts = {}
+    for font in self._text_fonts.values():
+      rl.unload_font(font)
+    self._text_fonts.clear()
+    self._font_codepoints.clear()
 
     if self._render_texture is not None:
       rl.unload_render_texture(self._render_texture)
@@ -706,8 +710,8 @@ class GuiApplication(GuiApplicationExt):
   def font(self, font_weight: FontWeight = FontWeight.NORMAL) -> rl.Font:
     return self._fonts[font_weight]
 
-  def fallback_font(self) -> rl.Font:
-    language = multilang.language
+  def fallback_font(self, language: str | None = None) -> rl.Font:
+    language = language or multilang.language
     if language not in self._fallback_fonts:
       chars = set(map(chr, range(32, 127))) | set(EXTRA_FONT_CHARS)
       chars.update(TRANSLATIONS_DIR.joinpath(f"app_{language}.po").read_text(encoding="utf-8"))
@@ -720,6 +724,48 @@ class GuiApplication(GuiApplicationExt):
       rl.set_texture_filter(font.texture, rl.TextureFilter.TEXTURE_FILTER_TRILINEAR)
       self._fallback_fonts[language] = font
     return self._fallback_fonts[language]
+
+  def _covers_text(self, font: rl.Font, codepoints: frozenset[int]) -> bool:
+    # raylib substitutes missing glyphs with '?'. Check the loaded atlas rather
+    # than assuming that requesting a codepoint means the font contains it.
+    if font.texture.id not in self._font_codepoints:
+      self._font_codepoints[font.texture.id] = frozenset(font.glyphs[i].value for i in range(font.glyphCount))
+    return codepoints <= self._font_codepoints[font.texture.id]
+
+  def font_for_text(self, font: rl.Font, text: str) -> rl.Font:
+    codepoints = frozenset(ord(c) for c in text if c not in '\n\r\t')
+    if self._covers_text(font, codepoints):
+      return font
+
+    # Prefer the localized, smoother font where it has all the glyphs. The
+    # bundled Noto files are subsets, so dynamic place names need a further
+    # fallback even when the UI language is Chinese.
+    language = multilang.language if multilang.requires_font_fallback() else 'zh-CHT'
+    if any(c >= 0x0E00 for c in codepoints):
+      localized = self.fallback_font(language)
+      if self._covers_text(localized, codepoints):
+        return localized
+
+    if codepoints not in self._text_fonts:
+      # Load only the requested glyphs, not an entire CJK atlas. Bound GPU
+      # memory when a drive encounters many different road names.
+      if len(self._text_fonts) >= 16:
+        _, old = self._text_fonts.popitem(last=False)
+        self._font_codepoints.pop(old.texture.id, None)
+        rl.unload_font(old)
+        # OpenGL may reuse texture IDs; cached widths must not follow an old
+        # atlas into its replacement.
+        from openpilot.system.ui.lib import text_measure, wrap_text
+        text_measure._cache.clear()
+        wrap_text._cache.clear()
+      points = sorted(codepoints | frozenset(range(32, 127)))
+      buffer = rl.ffi.new('int[]', points)
+      with as_file(FONT_DIR) as fspath:
+        fallback = rl.load_font_ex((fspath / FontWeight.UNIFONT).as_posix(), 48,
+                                   rl.ffi.cast('int *', buffer), len(points))
+      self._text_fonts[codepoints] = fallback
+    self._text_fonts.move_to_end(codepoints)
+    return self._text_fonts[codepoints]
 
   @property
   def width(self):
@@ -757,7 +803,7 @@ class GuiApplication(GuiApplicationExt):
       rl._orig_draw_text_ex = rl.draw_text_ex
 
     def _draw_text_ex_scaled(font, text, position, font_size, spacing, tint):
-      font = font_fallback(font)
+      font = font_fallback(font, text)
       return rl._orig_draw_text_ex(font, text, position, font_size * FONT_SCALE, spacing, tint)
 
     rl.draw_text_ex = _draw_text_ex_scaled

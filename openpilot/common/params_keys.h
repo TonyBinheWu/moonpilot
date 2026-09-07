@@ -291,6 +291,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"HkgLowSpeedTorque", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"HkgModelBlinkers", {PERSISTENT | BACKUP, BOOL, "0"}},
     {"MapboxNavigation", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"OsmNavigation", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"OsmRoutingServer", {PERSISTENT | DONT_LOG, STRING, "https://router.project-osrm.org"}},
     {"MapboxToken", {PERSISTENT | DONT_LOG, STRING}},
     {"MapboxDestination", {PERSISTENT | DONT_LOG, JSON}},
     {"NavTurnConfirmation", {PERSISTENT | BACKUP, BOOL, "0"}},

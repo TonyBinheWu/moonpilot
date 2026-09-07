@@ -2,11 +2,17 @@ name: HKG enhanced checks
 
 on:
   push:
+    branches: [hkg-enhanced, hkg-ui-osm-review]
+  pull_request:
     branches: [hkg-enhanced]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: hkg-checks-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   navigation-and-safety:
@@ -29,5 +35,37 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
           DEV: CPU
         run: python -m unittest discover -s openpilot/sunnypilot/navd/tests -v
-      - name: HKG controller and CAN-FD safety regression
-        run: python -m pytest -q opendbc_repo/opendbc/safety/tests/test_hyundai_canfd.py opendbc_repo/opendbc/safety/tests/test_hyundai_canfd_blinkers.py opendbc_repo/opendbc/sunnypilot/car/hyundai/tests opendbc_repo/opendbc/car/hyundai/tests/test_torque.py
+      - name: All vehicle safety models and HKG controllers
+        run: python -m pytest -q opendbc_repo/opendbc/safety/tests/test_*.py opendbc_repo/opendbc/sunnypilot/car/hyundai/tests opendbc_repo/opendbc/car/hyundai/tests/test_torque.py
+      - name: MISRA safety analysis
+        working-directory: opendbc_repo
+        run: |
+          pip install uv
+          bash opendbc/safety/tests/misra/test_misra.sh
+  native-ui-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Load UI source dependencies and assets
+        run: |
+          git submodule update --init opendbc_repo msgq_repo tinygrad_repo
+          git lfs pull --include='openpilot/**/assets/**'
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libgles2 libgl1-mesa-dri libcurl4
+      - name: Build native UI support
+        run: |
+          pip install -r tools/ui_preview/requirements.txt
+          pip install -e ./opendbc_repo -e ./msgq_repo -e ./tinygrad_repo
+          python tools/ui_preview/build.py
+      - name: Real UI, glyphs, paste and browser input
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: python -m unittest tools.ui_preview.test_preview -v
