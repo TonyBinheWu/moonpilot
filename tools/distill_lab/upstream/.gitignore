@@ -1,0 +1,9 @@
+.venv/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+outputs/
+scripts/
+data/
+models/.cache/
+models/model.fp8_nvfp4.torchpackage
