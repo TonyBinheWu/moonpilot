@@ -1,7 +1,7 @@
 # HKG Enhanced：Mapbox 導航與模型方向燈實驗分支
 
 基底：`TonyBinheWu/sunnypilot` 的 `deafa7dff672a89cc7e4b0fabdd71bec695fa3b9`。
-分支：`hkg-enhanced`。原有 HKG 低速扭力開關、Chestnut 載入與小模型 fallback 延續基底。
+分支：`hkg-enhanced`。HKG 低速扭力保留原開關資格，新增第二道 EV6 專屬曲線門檻；Chestnut 載入與小模型 fallback 延續基底。
 
 ## 本版完成範圍
 
@@ -75,7 +75,7 @@ python3 -c 'from getpass import getpass; from openpilot.common.params import Par
 - 只對已開始的變換車道或已確認的導航轉彎輸出燈號；資料有效、車輛 CAN 正常、橫向控制啟用才允許。駕駛反向操作、警示燈及目標側盲點會取消系統燈號請求。
 - Panda 只在專用旗標及 LKA 架構成立時接受這三種訊息；SPAS 除 CRC／counter／方向燈欄位外必須為零。方向燈只允許 0／3／4（取消／左／右），未啟用控制時只允許取消；0x7B1 僅允許 tester-present，不能發出其他診斷或停車動作。
 
-沒有更改轉向扭力、加速度與煞車的既有檢查；原有低速扭力開關另見 [EV6_LOW_SPEED_TORQUE.md](EV6_LOW_SPEED_TORQUE.md)。
+方向燈功能不更改轉向扭力、加速度與煞車的既有檢查；低速扭力的 HKG 開關資格與 EV6 曲線門檻另見 [EV6_LOW_SPEED_TORQUE.md](EV6_LOW_SPEED_TORQUE.md)。
 
 ## Full-FOV 與導航模型的缺口
 

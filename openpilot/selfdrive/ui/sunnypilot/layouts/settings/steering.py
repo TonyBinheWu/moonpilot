@@ -5,7 +5,7 @@ This file is part of sunnypilot and is licensed under the MIT License.
 See the LICENSE.md file in the root directory for more details.
 """
 from opendbc.car.structs import car
-from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque
+from opendbc.sunnypilot.car.hyundai.torque import supports_low_speed_torque, supports_ev6_torque_profile
 from opendbc.sunnypilot.car.hyundai.blinkers import supports_model_blinkers
 from enum import IntEnum
 
@@ -133,13 +133,15 @@ class SteeringLayout(Widget):
 
   @staticmethod
   def _hkg_low_speed_torque_description():
-    description = tr("Increase low-speed steering assistance. Default: off. Change only offroad; applies next drive. Requires vehicle validation.")
+    description = tr("Default: off. Set offroad; applies next drive. Only EV6 uses the experimental 310-to-270 profile. Other vehicles retain stock limits.")
     if ui_state.CP is None:
       status = tr("Start the vehicle to check vehicle compatibility.")
     elif not supports_low_speed_torque(ui_state.CP):
       status = tr("Unavailable for this vehicle. Requires compatible HKG CAN-FD torque steering.")
+    elif supports_ev6_torque_profile(ui_state.CP):
+      status = tr("Kia EV6 detected. The EV6 torque profile applies when enabled.")
     else:
-      status = tr("Compatible HKG CAN-FD vehicle detected.")
+      status = tr("Compatible HKG vehicle detected. This switch is available, but the EV6 torque profile does not apply.")
     return f"<b>{status}</b><br><br>{description}"
 
   def _update_state(self):

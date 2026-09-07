@@ -1187,3 +1187,15 @@ msgstr[1] "{} 分鐘前"
 msgid "✓ SUBSCRIBED"
 msgstr "✓ 已訂閱"
 
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Default: off. Set offroad; applies next drive. Only EV6 uses the experimental 310-to-270 profile. Other vehicles retain stock limits."
+msgstr "預設關閉，只能在非行車狀態設定，下次行車生效。僅 Kia EV6 套用實驗性的 310 至 270 扭力曲線，其他車型維持原上限。"
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Kia EV6 detected. The EV6 torque profile applies when enabled."
+msgstr "已辨識為 Kia EV6，開啟後套用 EV6 扭力曲線。"
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Compatible HKG vehicle detected. This switch is available, but the EV6 torque profile does not apply."
+msgstr "已辨識為相容 HKG 車型，開關可用；此車型不套用 EV6 扭力曲線。"

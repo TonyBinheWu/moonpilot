@@ -30,4 +30,4 @@ jobs:
           DEV: CPU
         run: python -m unittest discover -s openpilot/sunnypilot/navd/tests -v
       - name: HKG controller and CAN-FD safety regression
-        run: python -m pytest -q opendbc_repo/opendbc/safety/tests/test_hyundai_canfd.py opendbc_repo/opendbc/safety/tests/test_hyundai_canfd_blinkers.py opendbc_repo/opendbc/sunnypilot/car/hyundai/tests
+        run: python -m pytest -q opendbc_repo/opendbc/safety/tests/test_hyundai_canfd.py opendbc_repo/opendbc/safety/tests/test_hyundai_canfd_blinkers.py opendbc_repo/opendbc/sunnypilot/car/hyundai/tests opendbc_repo/opendbc/car/hyundai/tests/test_torque.py

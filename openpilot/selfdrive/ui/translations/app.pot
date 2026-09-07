@@ -1237,3 +1237,15 @@ msgstr ""
 #: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
 msgid "Neural Network Lateral Control (NNLC)"
 msgstr ""
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Default: off. Set offroad; applies next drive. Only EV6 uses the experimental 310-to-270 profile. Other vehicles retain stock limits."
+msgstr ""
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Kia EV6 detected. The EV6 torque profile applies when enabled."
+msgstr ""
+
+#: openpilot/selfdrive/ui/sunnypilot/layouts/settings/steering.py
+msgid "Compatible HKG vehicle detected. This switch is available, but the EV6 torque profile does not apply."
+msgstr ""
