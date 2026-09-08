@@ -24,7 +24,8 @@ from openpilot.system.ui.widgets.list_view import text_item
 from openpilot.system.ui.widgets.scroller_tici import Scroller
 
 from openpilot.system.ui.sunnypilot.lib.utils import NoElideButtonAction
-from openpilot.system.ui.sunnypilot.widgets.list_view import ListItemSP
+from openpilot.system.ui.sunnypilot.widgets.input_dialog import InputDialogSP
+from openpilot.system.ui.sunnypilot.widgets.list_view import ListItemSP, toggle_item_sp
 from openpilot.system.ui.sunnypilot.widgets.tree_dialog import TreeFolder, TreeNode, TreeOptionDialog
 from openpilot.system.ui.sunnypilot.widgets.progress_bar import progress_item
 
@@ -42,9 +43,27 @@ class OSMLayout(Widget):
     self._progress.set_visible(False)
     self._state_btn.set_visible(False)
     self._mapd_version.action_item.set_text(ui_state.params.get("MapdVersion") or "Loading...")
+    self._mapbox_token_btn.action_item.set_value(self._mapbox_token_status())
     self._scroller = Scroller(self.items, line_separator=True, spacing=0)
 
   def _initialize_items(self):
+    self._mapbox_token_btn = ListItemSP(
+      tr("Mapbox Public Token"),
+      description=tr("Paste a Mapbox public access token (pk.*). It is used for destination routes and turn-by-turn instructions."),
+      action_item=NoElideButtonAction(tr("SET"), enabled=True),
+      callback=self._edit_mapbox_token,
+    )
+    self._navigation_toggle = toggle_item_sp(
+      tr("Navigation"),
+      tr("Loads routes while Wi-Fi or cellular data is connected. A loaded route remains available if the connection drops."),
+      param="NavigationEnabled",
+    )
+    self._navigation_model_intent_toggle = toggle_item_sp(
+      tr("Navigation Intent for Model"),
+      tr("Sends supported left and right navigation maneuvers to the existing model desire input. Turn signals remain manually controlled."),
+      enabled=lambda: ui_state.params.get_bool("NavigationEnabled"),
+      param="NavigationModelIntent",
+    )
     self._mapd_version = text_item(tr("Mapd Version"), lambda: ui_state.params.get("MapdVersion") or "Loading...")
     self._delete_maps_btn = ListItemSP(tr("Downloaded Maps"), action_item=NoElideButtonAction(tr("DELETE"), enabled=True), callback=self._delete_maps)
     self._progress = progress_item(tr("Downloading Map"))
@@ -52,7 +71,38 @@ class OSMLayout(Widget):
     self._country_btn = ListItemSP(tr("Country"), action_item=NoElideButtonAction(tr("SELECT"), enabled=True), callback=lambda: self._select_region("Country"))
     self._state_btn = ListItemSP(tr("State"), action_item=NoElideButtonAction(tr("SELECT"), enabled=True), callback=lambda: self._select_region("State"))
 
-    self.items = [self._mapd_version, self._delete_maps_btn, self._progress, self._update_btn, self._country_btn, self._state_btn]
+    self.items = [self._mapbox_token_btn, self._navigation_toggle, self._navigation_model_intent_toggle,
+                  self._mapd_version, self._delete_maps_btn, self._progress, self._update_btn, self._country_btn, self._state_btn]
+
+  def _mapbox_token_status(self) -> str:
+    token = ui_state.params.get("MapboxPublicKey") or ""
+    return tr("Not set") if not token else f"••••{token[-4:]}"
+
+  def _edit_mapbox_token(self):
+    def save_token(result, value):
+      if result != DialogResult.CONFIRM:
+        return
+
+      token = value.strip()
+      if token and (not token.startswith("pk.") or len(token) < 20):
+        gui_app.push_widget(ConfirmDialog(
+          tr("Enter a valid Mapbox public token beginning with pk."), tr("OK"), cancel_text=""))
+        return
+
+      if token:
+        ui_state.params.put("MapboxPublicKey", token, block=True)
+      else:
+        ui_state.params.remove("MapboxPublicKey")
+      self._mapbox_token_btn.action_item.set_value(self._mapbox_token_status())
+
+    dialog = InputDialogSP(
+      tr("Mapbox Public Token"),
+      tr("Create a public token in your Mapbox account, then paste it here."),
+      current_text=ui_state.params.get("MapboxPublicKey") or "",
+      callback=save_token,
+      password_mode=True,
+    )
+    dialog.show()
 
   def _show_confirm(self, msg, confirm_text, func):
     gui_app.push_widget(ConfirmDialog(msg, confirm_text, callback=lambda res: func() if res == DialogResult.CONFIRM else None))
@@ -142,6 +192,7 @@ class OSMLayout(Widget):
     gui_app.push_widget(dialog)
 
   def _update_labels(self):
+    self._mapbox_token_btn.action_item.set_value(self._mapbox_token_status())
     downloading = bool(self._mem_params.get("OSMDownloadLocations"))
     self._country_btn.set_enabled(not downloading)
     self._state_btn.set_enabled(not downloading)

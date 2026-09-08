@@ -110,15 +110,29 @@ def coordinate_from_param(param: str, params: Params | None = None) -> Coordinat
   if params is None:
     params = Params()
 
-  json_str = params.get(param)
-  if json_str is None:
+  value = params.get(param)
+  if value is None:
     return None
 
-  pos = json.loads(json_str)
+  try:
+    pos = json.loads(value) if isinstance(value, str) else value
+  except (TypeError, ValueError):
+    return None
+
+  if not isinstance(pos, dict):
+    return None
   if 'latitude' not in pos or 'longitude' not in pos:
     return None
 
-  return Coordinate(pos['latitude'], pos['longitude'])
+  try:
+    latitude = float(pos['latitude'])
+    longitude = float(pos['longitude'])
+  except (TypeError, ValueError):
+    return None
+
+  if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
+    return None
+  return Coordinate(latitude, longitude)
 
 
 def string_to_direction(direction: str) -> str:
