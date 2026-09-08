@@ -1,8 +1,10 @@
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
 from openpilot.cereal import log
+from openpilot.common.params import Params
 from openpilot.sunnypilot.navd.model_desire import NavigationDesireController, activation_distance, maneuver_to_desire
 
 
@@ -46,23 +48,23 @@ def test_activation_distance_scales_and_is_bounded():
 
 
 def test_requires_both_switches_and_live_instruction():
-  controller = NavigationDesireController(FakeParams(model_intent=False))
+  controller = NavigationDesireController(cast(Params, FakeParams(model_intent=False)))
   assert controller.update(instruction(), car_state(), 10.0, True, True) == log.Desire.none
 
-  controller = NavigationDesireController(FakeParams())
+  controller = NavigationDesireController(cast(Params, FakeParams()))
   assert controller.update(instruction(), car_state(), 10.0, False, True) == log.Desire.none
   assert controller.update(instruction(), car_state(), 10.0, True, False) == log.Desire.none
 
 
 def test_only_activates_inside_speed_scaled_window():
-  controller = NavigationDesireController(FakeParams())
+  controller = NavigationDesireController(cast(Params, FakeParams()))
   assert controller.update(instruction(distance=61.0), car_state(), 15.0, True, True) == log.Desire.none
   assert controller.update(instruction(distance=60.0), car_state(), 15.0, True, True) == log.Desire.turnLeft
   assert controller.update(instruction(distance=-0.1), car_state(), 15.0, True, True) == log.Desire.none
 
 
 def test_opposite_manual_signal_cancels_navigation_intent():
-  controller = NavigationDesireController(FakeParams())
+  controller = NavigationDesireController(cast(Params, FakeParams()))
   assert controller.update(instruction(modifier="left"), car_state(right=True), 10.0, True, True) == log.Desire.none
   assert controller.update(instruction(modifier="left"), car_state(left=True), 10.0, True, True) == log.Desire.turnLeft
   assert controller.update(instruction(modifier="left"), car_state(left=True, right=True), 10.0, True, True) == log.Desire.none

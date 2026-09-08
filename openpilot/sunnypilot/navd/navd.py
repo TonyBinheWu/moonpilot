@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import math
@@ -283,9 +282,10 @@ class RouteEngine:
       self.pm.send("navInstruction", msg)
       return
 
+    last_position = self.last_position
     step = self.route[self.step_idx]
     geometry = self.route_geometry[self.step_idx]
-    along_geometry = distance_along_geometry(geometry, self.last_position)
+    along_geometry = distance_along_geometry(geometry, last_position)
     maneuver_distance = float(step.get("distance", 0.0)) - along_geometry
 
     instruction = parse_banner_instructions(step.get("bannerInstructions") or [], maneuver_distance) or {}
@@ -327,7 +327,7 @@ class RouteEngine:
     nav_instruction.timeRemainingTypical = total_time_typical
     nav_instruction.allManeuvers = all_maneuvers
 
-    closest_idx, closest = min(enumerate(geometry), key=lambda pair: pair[1].distance_to(self.last_position))
+    closest_idx, closest = min(enumerate(geometry), key=lambda pair: pair[1].distance_to(last_position))
     if closest_idx > 0 and along_geometry < distance_along_geometry(geometry, geometry[closest_idx]):
       closest = geometry[closest_idx - 1]
     if "maxspeed" in closest.annotations and self.localizer_valid:

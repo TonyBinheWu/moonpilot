@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import cast
 
 import requests
 
 from openpilot.cereal import log
+from openpilot.common.params import Params
 from openpilot.sunnypilot.navd.helpers import Coordinate
 from openpilot.sunnypilot.navd.navd import RouteEngine, limit_route_points, mapbox_language
 
@@ -77,7 +79,8 @@ def route_response():
 
 def make_engine(session=None, params=None, pm=None):
   params = params or FakeParams()
-  return RouteEngine(object(), pm or FakePM(), params=params, cache_params=params, session=session or FailingSession())
+  return RouteEngine(object(), pm or FakePM(), params=cast(Params, params), cache_params=cast(Params, params),
+                     session=cast(requests.Session, session or FailingSession()))
 
 
 def test_mapbox_language_aliases_match_supported_instruction_codes():
@@ -131,11 +134,13 @@ def test_network_gate_accepts_only_wifi_and_cellular():
                   log.DeviceState.NetworkType.cell3G, log.DeviceState.NetworkType.cell4G,
                   log.DeviceState.NetworkType.cell5G)
   for network_type in online_types:
-    engine = RouteEngine(NetworkSM(network_type), FakePM(), params=FakeParams(), cache_params=FakeParams())
+    engine = RouteEngine(NetworkSM(network_type), FakePM(), params=cast(Params, FakeParams()),
+                         cache_params=cast(Params, FakeParams()))
     assert engine.network_available()
 
   for network_type in (log.DeviceState.NetworkType.none, log.DeviceState.NetworkType.ethernet):
-    engine = RouteEngine(NetworkSM(network_type), FakePM(), params=FakeParams(), cache_params=FakeParams())
+    engine = RouteEngine(NetworkSM(network_type), FakePM(), params=cast(Params, FakeParams()),
+                         cache_params=cast(Params, FakeParams()))
     assert not engine.network_available()
 
 
