@@ -1,5 +1,6 @@
 from functools import wraps
 import json
+import math
 import multiprocessing
 import os
 import requests
@@ -472,6 +473,24 @@ class TestAthenadMethods(OpenpilotTestCase):
     for k in keys:
       assert isinstance(resp[k], str), f"{k} is not a string"
       assert len(resp[k]) > 0, f"{k} has no value"
+
+  def test_set_nav_destination(self):
+    assert dispatcher["setNavDestination"](22.3193, 114.1694, "Kowloon", "Hong Kong") == {"success": 1}
+    assert self.params.get("NavDestination") == {
+      "latitude": 22.3193,
+      "longitude": 114.1694,
+      "place_name": "Kowloon",
+      "place_details": "Hong Kong",
+    }
+
+  @parameterized.expand([
+    (91.0, 114.0),
+    (22.0, 181.0),
+    (math.nan, 114.0),
+  ])
+  def test_set_nav_destination_rejects_invalid_coordinates(self, latitude, longitude):
+    with self.assertRaises(ValueError):
+      dispatcher["setNavDestination"](latitude, longitude)
 
   def test_jsonrpc_handler(self):
     end_event = threading.Event()

@@ -94,6 +94,9 @@ def is_stock_model(started, params, CP: car.CarParams) -> bool:
 def mapd_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   return bool(os.path.exists(Paths.mapd_root()))
 
+def navigation_enabled(started: bool, params: Params, CP: car.CarParams) -> bool:
+  return params.get_bool("NavigationEnabled")
+
 def uploader_ready(started: bool, params: Params, CP: car.CarParams) -> bool:
   if not params.get_bool("OnroadUploads"):
     return only_offroad(started, params, CP)
@@ -177,6 +180,7 @@ procs += [
   # mapd
   NativeProcess("mapd", Paths.mapd_root(), ["bash", "-c", f"{MAPD_PATH} > /dev/null 2>&1"], mapd_ready),
   PythonProcess("mapd_manager", "openpilot.sunnypilot.mapd.mapd_manager", always_run),
+  PythonProcess("navd", "openpilot.sunnypilot.navd.navd", navigation_enabled),
 
   # locationd
   NativeProcess("locationd_llk", "openpilot/sunnypilot/selfdrive/locationd", ["./locationd"], only_onroad),

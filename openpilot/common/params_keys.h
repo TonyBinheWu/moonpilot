@@ -257,7 +257,12 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"MapAdvisorySpeedLimit", {CLEAR_ON_ONROAD_TRANSITION, FLOAT}},
     {"Mapd_ClearCache", {CLEAR_ON_MANAGER_START, BOOL}},
     {"MapdVersion", {PERSISTENT, STRING}},
+    {"MapboxPublicKey", {PERSISTENT | DONT_LOG, STRING}},
     {"MapSpeedLimit", {CLEAR_ON_ONROAD_TRANSITION, FLOAT, "0.0"}},
+    {"NavDestination", {PERSISTENT | DONT_LOG, JSON}},
+    {"NavigationEnabled", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"NavigationModelIntent", {PERSISTENT | BACKUP, BOOL, "0"}},
+    {"NavRouteCache", {CLEAR_ON_MANAGER_START | DONT_LOG, JSON}},
     {"NextMapSpeedLimit", {CLEAR_ON_ONROAD_TRANSITION, JSON}},
     {"Offroad_OSMUpdateRequired", {CLEAR_ON_MANAGER_START, JSON}},
     {"OsmDbUpdatesCheck", {CLEAR_ON_MANAGER_START, BOOL}},  // mapd database update happens with device ON, reset on boot
